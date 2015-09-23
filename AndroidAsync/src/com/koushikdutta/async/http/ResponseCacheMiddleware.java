@@ -81,11 +81,11 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
     public FileCache getFileCache() {
         return cache;
     }
-    
+
     public boolean getCaching() {
         return caching;
     }
-    
+
     public void setCaching(boolean caching) {
         this.caching = caching;
     }
@@ -196,7 +196,7 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
     public int getCacheHitCount() {
         return cacheHitCount;
     }
-    
+
     public int getNetworkCount() {
         return networkCount;
     }
@@ -297,7 +297,7 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
                 cacher.commit();
         }
     }
-    
+
     public void clear() {
         if (cache != null) {
             cache.clear();
@@ -310,7 +310,7 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
         long contentLength;
         ResponseHeaders cachedResponseHeaders;
     }
-    
+
     private static class BodyCacher extends FilteredDataEmitter {
         EntryEditor editor;
         ByteBufferList cached;
@@ -461,7 +461,7 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
             super.report(e);
         }
     }
-    
+
     private static final class Entry {
         private final String uri;
         private final RawHeaders varyHeaders;
@@ -545,9 +545,9 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
 //                    peerCertificates = readCertArray(reader);
 //                    localCertificates = readCertArray(reader);
 //                } else {
-                    cipherSuite = null;
-                    peerCertificates = null;
-                    localCertificates = null;
+                cipherSuite = null;
+                peerCertificates = null;
+                localCertificates = null;
 //                }
             } finally {
                 StreamUtility.closeQuietly(reader, in);
@@ -571,9 +571,9 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
 //                peerCertificates = peerCertificatesNonFinal;
 //                localCertificates = httpsConnection.getLocalCertificates();
 //            } else {
-                cipherSuite = null;
-                peerCertificates = null;
-                localCertificates = null;
+            cipherSuite = null;
+            peerCertificates = null;
+            localCertificates = null;
 //            }
         }
 
@@ -647,11 +647,11 @@ public class ResponseCacheMiddleware extends SimpleMiddleware {
         }
 
         public boolean matches(Uri uri, String requestMethod,
-                Map<String, List<String>> requestHeaders) {
+                               Map<String, List<String>> requestHeaders) {
             return this.uri.equals(uri.toString())
                     && this.requestMethod.equals(requestMethod)
                     && new ResponseHeaders(uri, responseHeaders)
-                            .varyMatches(varyHeaders.toMultimap(), requestHeaders);
+                    .varyMatches(varyHeaders.toMultimap(), requestHeaders);
         }
     }
 

@@ -80,9 +80,9 @@ public class AsyncSSLSocketMiddleware extends AsyncSocketMiddleware {
 
     protected void tryHandshake(final ConnectCallback callback, AsyncSocket socket, final Uri uri, final int port) {
         AsyncSSLSocketWrapper.handshake(socket, uri.getHost(), port,
-        createConfiguredSSLEngine(uri.getHost(), port),
-        trustManagers, hostnameVerifier, true,
-        createHandshakeCallback(callback));
+                createConfiguredSSLEngine(uri.getHost(), port),
+                trustManagers, hostnameVerifier, true,
+                createHandshakeCallback(callback));
     }
 
     @Override

@@ -21,14 +21,14 @@ public class DocumentParser implements AsyncParser<Document> {
     @Override
     public Future<Document> parse(DataEmitter emitter) {
         return new ByteBufferListParser().parse(emitter)
-        .then(new TransformFuture<Document, ByteBufferList>() {
-            @Override
-            protected void transform(ByteBufferList result) throws Exception {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                DocumentBuilder db = dbf.newDocumentBuilder();
-                setComplete(db.parse(new ByteBufferListInputStream(result)));
-            }
-        });
+                .then(new TransformFuture<Document, ByteBufferList>() {
+                    @Override
+                    protected void transform(ByteBufferList result) throws Exception {
+                        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                        DocumentBuilder db = dbf.newDocumentBuilder();
+                        setComplete(db.parse(new ByteBufferListInputStream(result)));
+                    }
+                });
     }
 
     @Override

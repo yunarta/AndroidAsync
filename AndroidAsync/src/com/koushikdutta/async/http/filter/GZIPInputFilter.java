@@ -22,18 +22,18 @@ public class GZIPInputFilter extends InflaterInputFilter {
     private static final int FNAME = 8;
 
 
-    
+
     public GZIPInputFilter() {
         super(new Inflater(true));
     }
-    
+
     boolean mNeedsHeader = true;
     protected CRC32 crc = new CRC32();
 
     public static int unsignedToBytes(byte b) {
         return b & 0xFF;
     }
-    
+
     @Override
     @SuppressWarnings("unused")
     public void onDataAvailable(final DataEmitter emitter, ByteBufferList bb) {

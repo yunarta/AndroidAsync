@@ -42,7 +42,7 @@ public class OutputStreamDataSink implements DataSink {
     public void setOutputStream(OutputStream stream) {
         mStream = stream;
     }
-    
+
     public OutputStream getOutputStream() throws IOException {
         return mStream;
     }
@@ -79,7 +79,7 @@ public class OutputStreamDataSink implements DataSink {
     WritableCallback mWritable;
     @Override
     public void setWriteableCallback(WritableCallback handler) {
-        mWritable = handler;        
+        mWritable = handler;
     }
 
     @Override
@@ -103,11 +103,11 @@ public class OutputStreamDataSink implements DataSink {
         if (mClosedCallback != null)
             mClosedCallback.onCompleted(closeException);
     }
-    
+
     CompletedCallback mClosedCallback;
     @Override
     public void setClosedCallback(CompletedCallback handler) {
-        mClosedCallback = handler;        
+        mClosedCallback = handler;
     }
 
     @Override

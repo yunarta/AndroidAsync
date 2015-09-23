@@ -30,12 +30,12 @@ public class AsyncHttpServerResponseImpl implements AsyncHttpServerResponse {
     private RawHeaders mRawHeaders = new RawHeaders();
     private long mContentLength = -1;
     private ResponseHeaders mHeaders = new ResponseHeaders(null, mRawHeaders);
-    
+
     @Override
     public ResponseHeaders getHeaders() {
         return mHeaders;
     }
-    
+
     public AsyncSocket getSocket() {
         return mSocket;
     }
@@ -48,7 +48,7 @@ public class AsyncHttpServerResponseImpl implements AsyncHttpServerResponse {
         if (HttpUtil.isKeepAlive(req.getHeaders().getHeaders()))
             mRawHeaders.set("Connection", "Keep-Alive");
     }
-    
+
     @Override
     public void write(ByteBuffer bb) {
         if (bb.remaining() == 0)
@@ -93,7 +93,7 @@ public class AsyncHttpServerResponseImpl implements AsyncHttpServerResponse {
         if ("".equals(currentEncoding))
             mRawHeaders.removeAll("Transfer-Encoding");
         boolean canUseChunked = ("Chunked".equalsIgnoreCase(currentEncoding) || currentEncoding == null)
-           && !"close".equalsIgnoreCase(mRawHeaders.get("Connection"));
+                && !"close".equalsIgnoreCase(mRawHeaders.get("Connection"));
         if (mContentLength < 0) {
             String contentLength = mRawHeaders.get("Content-Length");
             if (!TextUtils.isEmpty(contentLength))
@@ -191,12 +191,12 @@ public class AsyncHttpServerResponseImpl implements AsyncHttpServerResponse {
             assert false;
         }
     }
-    
+
     boolean mEnded;
     protected void onEnd() {
         mEnded = true;
     }
-    
+
     protected void report(Exception e) {
     }
 

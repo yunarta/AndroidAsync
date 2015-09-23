@@ -170,7 +170,7 @@ public class SocketIOClient extends EventEmitter {
         connection.disconnect(this);
         DisconnectCallback disconnectCallback = this.disconnectCallback;
         if (disconnectCallback != null) {
-        	disconnectCallback.onDisconnect(null);
+            disconnectCallback.onDisconnect(null);
         }
     }
 

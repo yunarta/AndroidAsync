@@ -34,7 +34,7 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
     public void setIdleTimeoutMs(int idleTimeoutMs) {
         this.idleTimeoutMs = idleTimeoutMs;
     }
-    
+
     public int getSchemePort(Uri uri) {
         if (uri.getScheme() == null || !uri.getScheme().equals(scheme))
             return -1;
@@ -191,67 +191,67 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
         // try to connect to everything...
         data.request.logv("Resolving domain and connecting to all available addresses");
         return mClient.getServer().getAllByName(uri.getHost())
-        .then(new TransformFuture<AsyncSocket, InetAddress[]>() {
-            Exception lastException;
+                .then(new TransformFuture<AsyncSocket, InetAddress[]>() {
+                    Exception lastException;
 
-            @Override
-            protected void error(Exception e) {
-                super.error(e);
-                data.connectCallback.onConnectCompleted(e, null);
-            }
-
-            @Override
-            protected void transform(final InetAddress[] result) throws Exception {
-                Continuation keepTrying = new Continuation(new CompletedCallback() {
                     @Override
-                    public void onCompleted(Exception ex) {
-                        // if it completed, that means that the connection failed
-                        if (lastException == null)
-                            lastException = new ConnectionFailedException("Unable to connect to remote address");
-                        setComplete(lastException);
+                    protected void error(Exception e) {
+                        super.error(e);
+                        data.connectCallback.onConnectCompleted(e, null);
+                    }
+
+                    @Override
+                    protected void transform(final InetAddress[] result) throws Exception {
+                        Continuation keepTrying = new Continuation(new CompletedCallback() {
+                            @Override
+                            public void onCompleted(Exception ex) {
+                                // if it completed, that means that the connection failed
+                                if (lastException == null)
+                                    lastException = new ConnectionFailedException("Unable to connect to remote address");
+                                setComplete(lastException);
+                            }
+                        });
+
+                        for (final InetAddress address: result) {
+                            keepTrying.add(new ContinuationCallback() {
+                                @Override
+                                public void onContinue(Continuation continuation, final CompletedCallback next) throws Exception {
+                                    mClient.getServer().connectSocket(new InetSocketAddress(address, port), wrapCallback(new ConnectCallback() {
+                                        @Override
+                                        public void onConnectCompleted(Exception ex, AsyncSocket socket) {
+                                            if (isDone()) {
+                                                lastException = new Exception("internal error during connect");
+                                                next.onCompleted(null);
+                                                return;
+                                            }
+
+                                            // try the next address
+                                            if (ex != null) {
+                                                lastException = ex;
+                                                next.onCompleted(null);
+                                                return;
+                                            }
+
+                                            // if the socket is no longer needed, just hang onto it...
+                                            if (isDone() || isCancelled()) {
+                                                data.request.logd("Recycling extra socket leftover from cancelled operation");
+                                                idleSocket(socket);
+                                                recycleSocket(socket, data.request);
+                                                return;
+                                            }
+
+                                            if (setComplete(null, socket)) {
+                                                data.connectCallback.onConnectCompleted(ex, socket);
+                                            }
+                                        }
+                                    }, uri, port, false));
+                                }
+                            });
+                        }
+
+                        keepTrying.start();
                     }
                 });
-
-                for (final InetAddress address: result) {
-                    keepTrying.add(new ContinuationCallback() {
-                        @Override
-                        public void onContinue(Continuation continuation, final CompletedCallback next) throws Exception {
-                            mClient.getServer().connectSocket(new InetSocketAddress(address, port), wrapCallback(new ConnectCallback() {
-                                @Override
-                                public void onConnectCompleted(Exception ex, AsyncSocket socket) {
-                                    if (isDone()) {
-                                        lastException = new Exception("internal error during connect");
-                                        next.onCompleted(null);
-                                        return;
-                                    }
-
-                                    // try the next address
-                                    if (ex != null) {
-                                        lastException = ex;
-                                        next.onCompleted(null);
-                                        return;
-                                    }
-
-                                    // if the socket is no longer needed, just hang onto it...
-                                    if (isDone() || isCancelled()) {
-                                        data.request.logd("Recycling extra socket leftover from cancelled operation");
-                                        idleSocket(socket);
-                                        recycleSocket(socket, data.request);
-                                        return;
-                                    }
-
-                                    if (setComplete(null, socket)) {
-                                        data.connectCallback.onConnectCompleted(ex, socket);
-                                    }
-                                }
-                            }, uri, port, false));
-                        }
-                    });
-                }
-
-                keepTrying.start();
-            }
-        });
     }
 
     private ConnectionInfo getOrCreateConnectionInfo(String lookup) {

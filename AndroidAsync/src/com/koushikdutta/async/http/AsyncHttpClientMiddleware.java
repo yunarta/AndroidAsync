@@ -16,15 +16,15 @@ public interface AsyncHttpClientMiddleware {
         public ConnectCallback connectCallback;
         public Cancellable socketCancellable;
     }
-    
+
     public static class OnSocketData extends GetSocketData {
         public AsyncSocket socket;
     }
-    
+
     public static class OnHeadersReceivedData extends OnSocketData {
         public ResponseHeaders headers;
     }
-    
+
     public static class OnBodyData extends OnHeadersReceivedData {
         public DataEmitter bodyEmitter;
     }

@@ -34,7 +34,7 @@ public abstract class AsyncHttpServerRequestImpl extends FilteredDataEmitter imp
     }
 
     abstract protected void onHeadersReceived();
-    
+
     protected void onNotHttp() {
         System.out.println("not http: " + mRawHeaders.getStatusLine());
         System.out.println("not http: " + mRawHeaders.getStatusLine().length());
@@ -43,7 +43,7 @@ public abstract class AsyncHttpServerRequestImpl extends FilteredDataEmitter imp
     protected AsyncHttpRequestBody onUnknownBody(RawHeaders headers) {
         return null;
     }
-    
+
     StringCallback mHeaderCallback = new StringCallback() {
         @Override
         public void onStringAvailable(String s) {
@@ -87,7 +87,7 @@ public abstract class AsyncHttpServerRequestImpl extends FilteredDataEmitter imp
     public String getMethod() {
         return method;
     }
-    
+
     void setSocket(AsyncSocket socket) {
         mSocket = socket;
 
@@ -95,7 +95,7 @@ public abstract class AsyncHttpServerRequestImpl extends FilteredDataEmitter imp
         mSocket.setDataCallback(liner);
         liner.setLineCallback(mHeaderCallback);
     }
-    
+
     @Override
     public AsyncSocket getSocket() {
         return mSocket;

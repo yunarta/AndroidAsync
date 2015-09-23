@@ -379,7 +379,7 @@ public final class ResponseHeaders {
      * between {@code cachedRequest} and {@code newRequest}.
      */
     public boolean varyMatches(Map<String, List<String>> cachedRequest,
-            Map<String, List<String>> newRequest) {
+                               Map<String, List<String>> newRequest) {
         for (String field : varyFields) {
             if (!Objects.equal(cachedRequest.get(field), newRequest.get(field))) {
                 return false;

@@ -17,12 +17,12 @@ public class StringParser implements AsyncParser<String> {
     public Future<String> parse(DataEmitter emitter) {
         final String charset = emitter.charset();
         return new ByteBufferListParser().parse(emitter)
-        .then(new TransformFuture<String, ByteBufferList>() {
-            @Override
-            protected void transform(ByteBufferList result) throws Exception {
-                setComplete(result.readString(charset != null ? Charset.forName(charset) : null));
-            }
-        });
+                .then(new TransformFuture<String, ByteBufferList>() {
+                    @Override
+                    protected void transform(ByteBufferList result) throws Exception {
+                        setComplete(result.readString(charset != null ? Charset.forName(charset) : null));
+                    }
+                });
     }
 
     @Override

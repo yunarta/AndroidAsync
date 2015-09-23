@@ -35,7 +35,7 @@ public class OutputStreamDataCallback implements DataCallback, CompletedCallback
             bb.recycle();
         }
     }
-    
+
     public void close() {
         try {
             mOutput.close();
@@ -47,6 +47,6 @@ public class OutputStreamDataCallback implements DataCallback, CompletedCallback
 
     @Override
     public void onCompleted(Exception error) {
-        error.printStackTrace();       
+        error.printStackTrace();
     }
 }

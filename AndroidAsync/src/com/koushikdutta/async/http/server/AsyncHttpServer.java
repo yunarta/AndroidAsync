@@ -52,7 +52,7 @@ public class AsyncHttpServer {
             }
         }
     }
-    
+
     protected void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
     }
 
@@ -101,7 +101,7 @@ public class AsyncHttpServer {
                         return;
                     }
 //                    System.out.println(headers.toHeaderString());
-                    
+
                     String statusLine = headers.getStatusLine();
                     String[] parts = statusLine.split(" ");
                     fullPath = parts[1];
@@ -130,9 +130,9 @@ public class AsyncHttpServer {
                             handleOnCompleted();
                         }
                     };
-                    
+
                     onRequest(this, res);
-                    
+
                     if (match == null) {
                         res.responseCode(404);
                         res.end();
@@ -170,7 +170,7 @@ public class AsyncHttpServer {
                             match.callback.onRequest(this, res);
                     }
                 }
-                
+
                 private void handleOnCompleted() {
                     if (requestComplete && responseComplete) {
                         if (HttpUtil.isKeepAlive(getHeaders().getHeaders())) {
@@ -218,7 +218,7 @@ public class AsyncHttpServer {
         if (mCompletedCallback != null)
             mCompletedCallback.onCompleted(ex);
     }
-    
+
     public AsyncServerSocket listen(int port) {
         return listen(AsyncServer.getDefault(), port);
     }
@@ -228,13 +228,13 @@ public class AsyncHttpServer {
             @Override
             public void onAccepted(AsyncSocket socket) {
                 AsyncSSLSocketWrapper.handshake(socket, null, port, sslContext.createSSLEngine(), null, null, false,
-                new AsyncSSLSocketWrapper.HandshakeCallback() {
-                    @Override
-                    public void onHandshakeCompleted(Exception e, AsyncSSLSocket socket) {
-                        if (socket != null)
-                            mListenCallback.onAccepted(socket);
-                    }
-                });
+                        new AsyncSSLSocketWrapper.HandshakeCallback() {
+                            @Override
+                            public void onHandshakeCompleted(Exception e, AsyncSSLSocket socket) {
+                                if (socket != null)
+                                    mListenCallback.onAccepted(socket);
+                            }
+                        });
             }
 
             @Override
@@ -248,32 +248,32 @@ public class AsyncHttpServer {
             }
         });
     }
-    
+
     public ListenCallback getListenCallback() {
         return mListenCallback;
     }
 
     CompletedCallback mCompletedCallback;
     public void setErrorCallback(CompletedCallback callback) {
-        mCompletedCallback = callback;        
+        mCompletedCallback = callback;
     }
 
     public CompletedCallback getErrorCallback() {
         return mCompletedCallback;
     }
-    
+
     private static class Pair {
         Pattern regex;
         HttpServerRequestCallback callback;
     }
-    
+
     Hashtable<String, ArrayList<Pair>> mActions = new Hashtable<String, ArrayList<Pair>>();
-    
+
     public void addAction(String action, String regex, HttpServerRequestCallback callback) {
         Pair p = new Pair();
         p.regex = Pattern.compile("^" + regex);
         p.callback = callback;
-        
+
         synchronized (mActions) {
             ArrayList<Pair> pairs = mActions.get(action);
             if (pairs == null) {
@@ -322,11 +322,11 @@ public class AsyncHttpServer {
             }
         });
     }
-    
+
     public void get(String regex, HttpServerRequestCallback callback) {
         addAction(AsyncHttpGet.METHOD, regex, callback);
     }
-    
+
     public void post(String regex, HttpServerRequestCallback callback) {
         addAction(AsyncHttpPost.METHOD, regex, callback);
     }
@@ -422,7 +422,7 @@ public class AsyncHttpServer {
     public void directory(String regex, final File directory) {
         directory(regex, directory, false);
     }
-    
+
     public void directory(String regex, final File directory, final boolean list) {
         assert directory.isDirectory();
         addAction("GET", regex, new HttpServerRequestCallback() {
@@ -430,7 +430,7 @@ public class AsyncHttpServer {
             public void onRequest(AsyncHttpServerRequest request, final AsyncHttpServerResponse response) {
                 String path = request.getMatcher().replaceAll("");
                 File file = new File(directory, path);
-                
+
                 if (file.isDirectory() && list) {
                     ArrayList<File> dirs = new ArrayList<File>();
                     ArrayList<File> files = new ArrayList<File>();
@@ -440,19 +440,19 @@ public class AsyncHttpServer {
                         else
                             files.add(f);
                     }
-                    
+
                     Comparator<File> c = new Comparator<File>() {
                         @Override
                         public int compare(File lhs, File rhs) {
                             return lhs.getName().compareTo(rhs.getName());
                         }
                     };
-                    
+
                     Collections.sort(dirs, c);
                     Collections.sort(files, c);
-                    
+
                     files.addAll(0, dirs);
-                    
+
                     return;
                 }
                 if (!file.isFile()) {
@@ -478,7 +478,7 @@ public class AsyncHttpServer {
             }
         });
     }
-    
+
     private static Hashtable<Integer, String> mCodes = new Hashtable<Integer, String>();
     static {
         mCodes.put(200, "OK");
@@ -488,7 +488,7 @@ public class AsyncHttpServer {
         mCodes.put(302, "Found");
         mCodes.put(404, "Not Found");
     }
-    
+
     public static String getResponseCodeDescription(int code) {
         String d = mCodes.get(code);
         if (d == null)

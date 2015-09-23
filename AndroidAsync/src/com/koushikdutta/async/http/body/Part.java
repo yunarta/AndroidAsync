@@ -12,18 +12,18 @@ import java.util.Map;
 
 public class Part {
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
-    
+
     RawHeaders mHeaders;
     Multimap mContentDisposition;
     public Part(RawHeaders headers) {
         mHeaders = headers;
         mContentDisposition = Multimap.parseHeader(mHeaders, CONTENT_DISPOSITION);
     }
-    
+
     public String getName() {
         return mContentDisposition.getString("name");
     }
-    
+
     private long length = -1;
     public Part(String name, long length, List<NameValuePair> contentDisposition) {
         this.length = length;
@@ -60,11 +60,11 @@ public class Part {
     public boolean isFile() {
         return mContentDisposition.containsKey("filename");
     }
-    
+
     public long length() {
         return length;
     }
-    
+
     public void write(DataSink sink, CompletedCallback callback) {
         assert false;
     }

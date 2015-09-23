@@ -88,16 +88,16 @@ abstract class HybiParser {
     private static final int OP_PONG         = 10;
 
     private static final List<Integer> OPCODES = Arrays.asList(
-        OP_CONTINUATION,
-        OP_TEXT,
-        OP_BINARY,
-        OP_CLOSE,
-        OP_PING,
-        OP_PONG
+            OP_CONTINUATION,
+            OP_TEXT,
+            OP_BINARY,
+            OP_CLOSE,
+            OP_PING,
+            OP_PONG
     );
 
     private static final List<Integer> FRAGMENTED_OPCODES = Arrays.asList(
-        OP_CONTINUATION, OP_TEXT, OP_BINARY
+            OP_CONTINUATION, OP_TEXT, OP_BINARY
     );
 //
 //    public HybiParser(WebSocketClient client) {
@@ -152,7 +152,7 @@ abstract class HybiParser {
             parse();
         }
     };
-    
+
     DataCallback mStage1 = new DataCallback() {
         @Override
         public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
@@ -160,7 +160,7 @@ abstract class HybiParser {
             parse();
         }
     };
-    
+
     DataCallback mStage2 = new DataCallback() {
         @Override
         public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
@@ -176,7 +176,7 @@ abstract class HybiParser {
             parse();
         }
     };
-    
+
     DataCallback mStage3 = new DataCallback() {
         @Override
         public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
@@ -204,44 +204,44 @@ abstract class HybiParser {
             parse();
         }
     };
-    
+
     void parse() {
         switch (mStage) {
-        case 0:
-            mReader.read(1, mStage0);
-            break;
-        case 1:
-            mReader.read(1, mStage1);
-            break;
-        case 2:
-            mReader.read(mLengthSize, mStage2);
-            break;
-        case 3:
-            mReader.read(4, mStage3);
-            break;
-        case 4:
-            mReader.read(mLength, mStage4);
-            break;
+            case 0:
+                mReader.read(1, mStage0);
+                break;
+            case 1:
+                mReader.read(1, mStage1);
+                break;
+            case 2:
+                mReader.read(mLengthSize, mStage2);
+                break;
+            case 3:
+                mReader.read(4, mStage3);
+                break;
+            case 4:
+                mReader.read(mLength, mStage4);
+                break;
         }
     }
-    
+
     private DataEmitterReader mReader = new DataEmitterReader();
 
-	private static final long BASE = 2;
+    private static final long BASE = 2;
 
-	private static final long _2_TO_8_ = BASE << 7;
+    private static final long _2_TO_8_ = BASE << 7;
 
-	private static final long _2_TO_16_ = BASE << 15;
+    private static final long _2_TO_16_ = BASE << 15;
 
-	private static final long _2_TO_24 = BASE << 23;
+    private static final long _2_TO_24 = BASE << 23;
 
-	private static final long _2_TO_32_ = BASE << 31;
+    private static final long _2_TO_32_ = BASE << 31;
 
-	private static final long _2_TO_40_ = BASE << 39;
+    private static final long _2_TO_40_ = BASE << 39;
 
-	private static final long _2_TO_48_ = BASE << 47;
+    private static final long _2_TO_48_ = BASE << 47;
 
-	private static final long _2_TO_56_ = BASE << 55;
+    private static final long _2_TO_56_ = BASE << 55;
     public HybiParser(DataEmitter socket) {
         socket.setDataCallback(mReader);
         parse();
@@ -297,9 +297,9 @@ abstract class HybiParser {
     public byte[] frame(byte[] data) {
         return frame(OP_BINARY, data, -1);
     }
-    
+
     public byte[] frame(byte[] data, int offset, int length) {
-    	return frame(OP_BINARY, data, -1, offset, length);
+        return frame(OP_BINARY, data, -1, offset, length);
     }
 
     public byte[] pingFrame(String data) {
@@ -308,7 +308,7 @@ abstract class HybiParser {
 
     /**
      * Flip the opcode so to avoid the name collision with the public method
-     * 
+     *
      * @param opcode
      * @param data
      * @param errorCode
@@ -320,7 +320,7 @@ abstract class HybiParser {
 
     /**
      * Don't actually need the flipped method signature, trying to keep it in line with the byte[] version
-     * 
+     *
      * @param opcode
      * @param data
      * @param errorCode
@@ -329,7 +329,7 @@ abstract class HybiParser {
     private byte[] frame(int opcode, String data, int errorCode) {
         return frame(opcode, decode(data), errorCode);
     }
-    
+
     private byte[] frame(int opcode, byte [] data, int errorCode, int dataOffset, int dataLength) {
         if (mClosed) return null;
 
@@ -351,8 +351,8 @@ abstract class HybiParser {
             frame[2] = (byte) (length / 256);
             frame[3] = (byte) (length & BYTE);
         } else {
-        	
-        	frame[1] = (byte) (masked | 127);
+
+            frame[1] = (byte) (masked | 127);
             frame[2] = (byte) (( length / _2_TO_56_) & BYTE);
             frame[3] = (byte) (( length / _2_TO_48_) & BYTE);
             frame[4] = (byte) (( length / _2_TO_40_) & BYTE);
@@ -367,13 +367,13 @@ abstract class HybiParser {
             frame[offset] = (byte) ((errorCode / 256) & BYTE);
             frame[offset+1] = (byte) (errorCode & BYTE);
         }
-        
+
         System.arraycopy(buffer, dataOffset, frame, offset + insert, dataLength - dataOffset);
 
         if (mMasking) {
             byte[] mask = {
-                (byte) Math.floor(Math.random() * 256), (byte) Math.floor(Math.random() * 256),
-                (byte) Math.floor(Math.random() * 256), (byte) Math.floor(Math.random() * 256)
+                    (byte) Math.floor(Math.random() * 256), (byte) Math.floor(Math.random() * 256),
+                    (byte) Math.floor(Math.random() * 256), (byte) Math.floor(Math.random() * 256)
             };
             System.arraycopy(mask, 0, frame, header, mask.length);
             mask(frame, mask, offset);
@@ -448,7 +448,7 @@ abstract class HybiParser {
 //            Log.d(TAG, "Got pong! " + message);
         }
     }
-    
+
     protected abstract void onMessage(byte[] payload);
     protected abstract void onMessage(String payload);
     protected abstract void onPong(String payload);
