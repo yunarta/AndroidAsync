@@ -113,7 +113,7 @@ public class SocketIOTests extends TestCase {
                 });
                 client.on("pong", new EventCallback() {
                     @Override
-                    public void onEvent(JSONArray arguments, Acknowledge acknowledge) {
+                    public void onEvent(String event, JSONArray arguments, Acknowledge acknowledge) {
                         trigger2.trigger(arguments.length() == 3);
                     }
                 });
@@ -210,7 +210,7 @@ public class SocketIOTests extends TestCase {
 
         client.on("scoop", new EventCallback() {
             @Override
-            public void onEvent(JSONArray argument, Acknowledge acknowledge) {
+            public void onEvent(String event, JSONArray argument, Acknowledge acknowledge) {
                 acknowledge.acknowledge(args);
 
             }
@@ -218,7 +218,7 @@ public class SocketIOTests extends TestCase {
 
         client.on("ack", new EventCallback() {
             @Override
-            public void onEvent(JSONArray argument, Acknowledge acknowledge) {
+            public void onEvent(String event, JSONArray argument, Acknowledge acknowledge) {
 
                 trigger.trigger(args.optString(0, null).equals("echo"));
             }
