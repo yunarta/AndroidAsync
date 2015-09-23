@@ -105,63 +105,63 @@ class SocketIOConnection {
         request.logi("Reconnecting socket.io");
 
         Cancellable connecting = httpClient.executeString(request, null)
-        .then(new TransformFuture<SocketIOTransport, String>() {
-            @Override
-            protected void transform(String result) throws Exception {
-                String[] parts = result.split(":");
-                String session = parts[0];
-                if (!"".equals(parts[1]))
-                    heartbeat = Integer.parseInt(parts[1]) / 2 * 1000;
-                else
-                    heartbeat = 0;
+                .then(new TransformFuture<SocketIOTransport, String>() {
+                    @Override
+                    protected void transform(String result) throws Exception {
+                        String[] parts = result.split(":");
+                        String session = parts[0];
+                        if (!"".equals(parts[1]))
+                            heartbeat = Integer.parseInt(parts[1]) / 2 * 1000;
+                        else
+                            heartbeat = 0;
 
-                String transportsLine = parts[3];
-                String[] transports = transportsLine.split(",");
-                HashSet<String> set = new HashSet<String>(Arrays.asList(transports));
-                final SimpleFuture<SocketIOTransport> transport = new SimpleFuture<SocketIOTransport>();
+                        String transportsLine = parts[3];
+                        String[] transports = transportsLine.split(",");
+                        HashSet<String> set = new HashSet<String>(Arrays.asList(transports));
+                        final SimpleFuture<SocketIOTransport> transport = new SimpleFuture<SocketIOTransport>();
 
-                if (set.contains("websocket")) {
-                    final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
-                            .appendPath("websocket").appendPath(session)
-                            .build().toString();
+                        if (set.contains("websocket")) {
+                            final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
+                                    .appendPath("websocket").appendPath(session)
+                                    .build().toString();
 
-                    httpClient.websocket(sessionUrl, null, null)
-                    .setCallback(new FutureCallback<WebSocket>() {
-                        @Override
-                        public void onCompleted(Exception e, WebSocket result) {
-                            if (e != null) {
-                                transport.setComplete(e);
-                                return;
-                            }
-                            transport.setComplete(new WebSocketTransport(result));
+                            httpClient.websocket(sessionUrl, null, null)
+                                    .setCallback(new FutureCallback<WebSocket>() {
+                                        @Override
+                                        public void onCompleted(Exception e, WebSocket result) {
+                                            if (e != null) {
+                                                transport.setComplete(e);
+                                                return;
+                                            }
+                                            transport.setComplete(new WebSocketTransport(result));
+                                        }
+                                    });
+                        } else if (set.contains("xhr-polling")) {
+                            final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
+                                    .appendPath("xhr-polling").appendPath(session)
+                                    .build().toString();
+                            XHRPollingTransport xhrPolling = new XHRPollingTransport(httpClient, sessionUrl);
+                            transport.setComplete(xhrPolling);
+                        } else {
+                            throw new SocketIOException("transport not supported");
                         }
-                    });
-                } else if (set.contains("xhr-polling")) {
-                    final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
-                            .appendPath("xhr-polling").appendPath(session)
-                            .build().toString();
-                    XHRPollingTransport xhrPolling = new XHRPollingTransport(httpClient, sessionUrl);
-                    transport.setComplete(xhrPolling);
-                } else {
-                    throw new SocketIOException("transport not supported");
-                }
 
-                setComplete(transport);
-            }
-        })
-        .setCallback(new FutureCallback<SocketIOTransport>() {
-            @Override
-            public void onCompleted(Exception e, SocketIOTransport result) {
-                if (e != null) {
-                    reportDisconnect(e);
-                    return;
-                }
+                        setComplete(transport);
+                    }
+                })
+                .setCallback(new FutureCallback<SocketIOTransport>() {
+                    @Override
+                    public void onCompleted(Exception e, SocketIOTransport result) {
+                        if (e != null) {
+                            reportDisconnect(e);
+                            return;
+                        }
 
-                reconnectDelay = 1000L;
-                SocketIOConnection.this.transport = result;
-                attach();
-            }
-        });
+                        reconnectDelay = 1000L;
+                        SocketIOConnection.this.transport = result;
+                        attach();
+                    }
+                });
 
         if (child != null)
             child.setParent(connecting);
@@ -175,7 +175,8 @@ class SocketIOConnection {
                 if (heartbeat <= 0 || ts != transport || ts == null || !ts.isConnected())
                     return;
                 transport.send("2:::");
-                transport.getServer().postDelayed(this, heartbeat);
+                if (transport != null && transport.getServer() != null)
+                    transport.getServer().postDelayed(this, heartbeat);
             }
         };
         heartbeatRunner.run();

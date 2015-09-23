@@ -26,17 +26,17 @@ public class AsyncHttpRequest {
             public String getUri() {
                 return AsyncHttpRequest.this.getUri().toString();
             }
-            
+
             @Override
             public ProtocolVersion getProtocolVersion() {
                 return new ProtocolVersion("HTTP", 1, 1);
             }
-            
+
             @Override
             public String getMethod() {
                 return mMethod;
             }
-            
+
             @Override
             public String toString() {
                 String path = AsyncHttpRequest.this.getUri().getEncodedPath();
@@ -79,10 +79,10 @@ public class AsyncHttpRequest {
         String agent = System.getProperty("http.agent");
         return agent != null ? agent : ("Java" + System.getProperty("java.version"));
     }
-    
+
     private String mMethod;
     public String getMethod() {
-       return mMethod; 
+        return mMethod;
     }
 
     public AsyncHttpRequest setMethod(String method) {
@@ -127,7 +127,7 @@ public class AsyncHttpRequest {
     public Uri getUri() {
         return mHeaders.getUri();
     }
-    
+
     private RawHeaders mRawHeaders = new RawHeaders();
     private RequestHeaders mHeaders;
 
@@ -138,7 +138,7 @@ public class AsyncHttpRequest {
     public String getRequestString() {
         return mRawHeaders.toHeaderString();
     }
-    
+
     private boolean mFollowRedirect = true;
     public boolean getFollowRedirect() {
         return mFollowRedirect;
@@ -147,16 +147,16 @@ public class AsyncHttpRequest {
         mFollowRedirect = follow;
         return this;
     }
-    
+
     private AsyncHttpRequestBody mBody;
     public void setBody(AsyncHttpRequestBody body) {
         mBody = body;
     }
-    
+
     public AsyncHttpRequestBody getBody() {
         return mBody;
     }
-    
+
     public void onHandshakeException(AsyncSSLException e) {
     }
 
@@ -165,12 +165,12 @@ public class AsyncHttpRequest {
     public int getTimeout() {
         return mTimeout;
     }
-    
+
     public AsyncHttpRequest setTimeout(int timeout) {
         mTimeout = timeout;
         return this;
     }
-    
+
     public static AsyncHttpRequest create(HttpRequest request) {
         AsyncHttpRequest ret = new AsyncHttpRequest(Uri.parse(request.getRequestLine().getUri()), request.getRequestLine().getMethod());
         for (Header header: request.getAllHeaders()) {
@@ -383,15 +383,15 @@ public class AsyncHttpRequest {
             return;
         if (logLevel > Log.DEBUG)
             return;
-        Log.d(LOGTAG, getLogMessage(message));
+        if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, getLogMessage(message));
     }
     public void logd(String message, Exception e) {
         if (LOGTAG == null)
             return;
         if (logLevel > Log.DEBUG)
             return;
-        Log.d(LOGTAG, getLogMessage(message));
-        Log.d(LOGTAG, e.getMessage(), e);
+        if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, getLogMessage(message));
+        if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, e.getMessage(), e);
     }
     public void loge(String message) {
         if (LOGTAG == null)
