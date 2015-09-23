@@ -17,7 +17,7 @@ is it.
 
 ### Download
 
-Download [the latest JAR](http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.koushikdutta.async&a=androidasync&v=LATEST
+Download [the latest JAR](https://search.maven.org/remote_content?g=com.koushikdutta.async&a=androidasync&v=LATEST
 ) or grab via Maven:
 
 ```xml
@@ -26,6 +26,13 @@ Download [the latest JAR](http://repository.sonatype.org/service/local/artifact/
     <artifactId>androidasync</artifactId>
     <version>(insert latest version)</version>
 </dependency>
+```
+
+Gradle: 
+```groovy
+dependencies {
+    compile 'com.koushikdutta.async:androidasync:2.+'
+}
 ```
 
 ### Download a url to a String
@@ -126,7 +133,7 @@ AsyncHttpClient.getDefaultInstance().websocket(get, "my-protocol", new WebSocket
             }
         });
         webSocket.setDataCallback(new DataCallback() {
-            public void onDataAvailable(ByteBufferList byteBufferList) {
+            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
                 System.out.println("I got some bytes!");
                 // note that this data has been read
                 byteBufferList.recycle();
@@ -137,7 +144,7 @@ AsyncHttpClient.getDefaultInstance().websocket(get, "my-protocol", new WebSocket
 ```
 
 
-### AndroidAsync also supports socket.io
+### AndroidAsync also supports socket.io (version 0.9.x)
 
 ```java
 SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), "http://192.168.1.2:3000", new ConnectCallback() {
@@ -216,7 +223,7 @@ server.listen(5000);
 ```java
 server.websocket("/live", new WebSocketRequestCallback() {
     @Override
-    public void onConnected(final WebSocket webSocket, RequestHeaders headers) {
+    public void onConnected(final WebSocket webSocket, AsyncHttpServerRequest request) {
         _sockets.add(webSocket);
         
         //Use this to clean up any references to your websocket
@@ -282,3 +289,6 @@ client.getString("http://foo.com/hello.txt")
 });
 ```
 
+### Note on SSLv3
+
+https://github.com/koush/AndroidAsync/issues/174

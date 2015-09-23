@@ -5,7 +5,7 @@ import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.wrapper.DataEmitterWrapper;
 
 public class FilteredDataEmitter extends DataEmitterBase implements DataEmitter, DataCallback, DataEmitterWrapper, DataTrackingEmitter {
-    DataEmitter mEmitter;
+    private DataEmitter mEmitter;
     @Override
     public DataEmitter getDataEmitter() {
         return mEmitter;
@@ -41,10 +41,16 @@ public class FilteredDataEmitter extends DataEmitterBase implements DataEmitter,
         this.tracker = tracker;
     }
 
-    DataTracker tracker;
-    int totalRead;
+    private DataTracker tracker;
+    private int totalRead;
     @Override
     public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
+        if (closed) {
+            // this emitter was closed but for some reason data is still being spewed...
+            // eat it, nom nom.
+            bb.recycle();
+            return;
+        }
         if (bb != null)
             totalRead += bb.remaining();
         Util.emitAllData(this, bb);
@@ -81,9 +87,12 @@ public class FilteredDataEmitter extends DataEmitterBase implements DataEmitter,
         return mEmitter.getServer();
     }
 
+    boolean closed;
     @Override
     public void close() {
-        mEmitter.close();
+        closed = true;
+        if (mEmitter != null)
+            mEmitter.close();
     }
 
     @Override

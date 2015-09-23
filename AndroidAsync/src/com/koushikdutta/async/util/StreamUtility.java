@@ -35,13 +35,13 @@ public class StreamUtility {
         }
     }
 
-    public static void copyStream(InputStream input, OutputStream output) throws IOException
-    {
-        final ReadableByteChannel inputChannel = Channels.newChannel(input);
-        final WritableByteChannel outputChannel = Channels.newChannel(output);
-        // copy the channels
-        fastChannelCopy(inputChannel, outputChannel);
-    }
+	public static void copyStream(InputStream input, OutputStream output) throws IOException
+	{
+	    final ReadableByteChannel inputChannel = Channels.newChannel(input);
+	    final WritableByteChannel outputChannel = Channels.newChannel(output);
+	    // copy the channels
+	    fastChannelCopy(inputChannel, outputChannel);
+	}
 
     public static byte[] readToEndAsArray(InputStream input) throws IOException
     {
@@ -56,14 +56,23 @@ public class StreamUtility {
         dis.close();
         return buff.toByteArray();
     }
-
-    public static String readToEnd(InputStream input) throws IOException
-    {
-        return new String(readToEndAsArray(input));
-    }
+    
+	public static String readToEnd(InputStream input) throws IOException
+	{
+	    return new String(readToEndAsArray(input));
+	}
 
     static public String readFile(String filename) throws IOException {
         return readFile(new File(filename));
+    }
+
+    static public String readFileSilent(String filename) {
+        try {
+            return readFile(new File(filename));
+        }
+        catch (IOException e) {
+            return null;
+        }
     }
 
     static public String readFile(File file) throws IOException {
@@ -77,18 +86,18 @@ public class StreamUtility {
         }
         return new String(buffer);
     }
-
+    
     public static void writeFile(File file, String string) throws IOException {
         file.getParentFile().mkdirs();
         DataOutputStream dout = new DataOutputStream(new FileOutputStream(file));
         dout.write(string.getBytes());
         dout.close();
     }
-
+    
     public static void writeFile(String file, String string) throws IOException {
         writeFile(new File(file), string);
     }
-
+    
     public static void closeQuietly(Closeable... closeables) {
         if (closeables == null)
             return;

@@ -9,7 +9,7 @@ public class ChunkedInputFilter extends FilteredDataEmitter {
     private int mChunkLength = 0;
     private int mChunkLengthRemaining = 0;
     private State mState = State.CHUNK_LEN;
-
+    
     private static enum State {
         CHUNK_LEN,
         CHUNK_LEN_CR,
@@ -19,7 +19,7 @@ public class ChunkedInputFilter extends FilteredDataEmitter {
         CHUNK_CRLF,
         COMPLETE
     }
-
+    
     private boolean checkByte(char b, char value) {
         if (b != value) {
             report(new ChunkedDataException(value + " was expected, got " + (char)b));
@@ -43,75 +43,72 @@ public class ChunkedInputFilter extends FilteredDataEmitter {
         super.report(e);
     }
 
+    ByteBufferList pending = new ByteBufferList();
     @Override
     public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
         try {
             while (bb.remaining() > 0) {
                 switch (mState) {
-                    case CHUNK_LEN:
-                        char c = bb.getByteChar();
-                        if (c == '\r') {
-                            mState = State.CHUNK_LEN_CR;
-                        }
+                case CHUNK_LEN:
+                    char c = bb.getByteChar();
+                    if (c == '\r') {
+                        mState = State.CHUNK_LEN_CR;
+                    }
+                    else {
+                        mChunkLength *= 16;
+                        if (c >= 'a' && c <= 'f')
+                            mChunkLength += (c - 'a' + 10);
+                        else if (c >= '0' && c <= '9')
+                            mChunkLength += c - '0';
+                        else if (c >= 'A' && c <= 'F')
+                            mChunkLength += (c - 'A' + 10);
                         else {
-                            mChunkLength *= 16;
-                            if (c >= 'a' && c <= 'f')
-                                mChunkLength += (c - 'a' + 10);
-                            else if (c >= '0' && c <= '9')
-                                mChunkLength += c - '0';
-                            else if (c >= 'A' && c <= 'F')
-                                mChunkLength += (c - 'A' + 10);
-                            else {
-                                report(new ChunkedDataException("invalid chunk length: " + c));
-                                return;
-                            }
-                        }
-                        mChunkLengthRemaining = mChunkLength;
-                        break;
-                    case CHUNK_LEN_CR:
-                        if (!checkLF(bb.getByteChar()))
+                            report(new ChunkedDataException("invalid chunk length: " + c));
                             return;
-                        mState = State.CHUNK;
-                        break;
-                    case CHUNK:
-                        int remaining = bb.remaining();
-                        int reading = Math.min(mChunkLengthRemaining, remaining);
-                        mChunkLengthRemaining -= reading;
-                        if (mChunkLengthRemaining == 0) {
-                            mState = State.CHUNK_CR;
                         }
-                        if (reading == 0)
-                            break;
-                        ByteBufferList chunk = bb.get(reading);
-                        int newRemaining = bb.remaining();
-                        assert remaining == chunk.remaining() + bb.remaining();
-                        assert reading == chunk.remaining();
-                        Util.emitAllData(this, chunk);
-                        assert newRemaining == bb.remaining();
+                    }
+                    mChunkLengthRemaining = mChunkLength;
+                    break;
+                case CHUNK_LEN_CR:
+                    if (!checkLF(bb.getByteChar()))
+                        return;
+                    mState = State.CHUNK;
+                    break;
+                case CHUNK:
+                    int remaining = bb.remaining();
+                    int reading = Math.min(mChunkLengthRemaining, remaining);
+                    mChunkLengthRemaining -= reading;
+                    if (mChunkLengthRemaining == 0) {
+                        mState = State.CHUNK_CR;
+                    }
+                    if (reading == 0)
                         break;
-                    case CHUNK_CR:
-                        if (!checkCR(bb.getByteChar()))
-                            return;
-                        mState = State.CHUNK_CRLF;
-                        break;
-                    case CHUNK_CRLF:
-                        if (!checkLF(bb.getByteChar()))
-                            return;
-                        if (mChunkLength > 0) {
-                            mState = State.CHUNK_LEN;
-
-                        }
-                        else {
-                            mState = State.COMPLETE;
-                            report(null);
-                        }
-                        mChunkLength = 0;
-                        break;
-                    case COMPLETE:
-                        assert false;
+                    bb.get(pending, reading);
+                    Util.emitAllData(this, pending);
+                    break;
+                case CHUNK_CR:
+                    if (!checkCR(bb.getByteChar()))
+                        return;
+                    mState = State.CHUNK_CRLF;
+                    break;
+                case CHUNK_CRLF:
+                    if (!checkLF(bb.getByteChar()))
+                        return;
+                    if (mChunkLength > 0) {
+                        mState = State.CHUNK_LEN;
+                        
+                    }
+                    else {
+                        mState = State.COMPLETE;
+                        report(null);
+                    }
+                    mChunkLength = 0;
+                    break;
+                case COMPLETE:
+                    assert false;
 //                    Exception fail = new Exception("Continued receiving data after chunk complete");
 //                    report(fail);
-                        return;
+                    return;
                 }
             }
         }

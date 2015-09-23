@@ -6,7 +6,7 @@ gen
 build
 .idea/
 .DS_Store
-
-okhttp
-okio
+okhttp/
+okio/
 libs
+*.iml

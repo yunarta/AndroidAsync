@@ -1,18 +1,19 @@
 package com.koushikdutta.async.http.socketio.transport;
 
 import com.koushikdutta.async.AsyncServer;
-import com.koushikdutta.async.NullDataCallback;
 import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.http.WebSocket;
 
 public class WebSocketTransport implements SocketIOTransport {
     private WebSocket webSocket;
     private StringCallback stringCallback;
+	private String sessionId;
 
-    public WebSocketTransport(WebSocket webSocket) {
+    public WebSocketTransport(WebSocket webSocket, String sessionId) {
         this.webSocket = webSocket;
-
-        this.webSocket.setDataCallback(new NullDataCallback());
+        this.sessionId = sessionId;
+        this.webSocket.setDataCallback(new DataCallback.NullDataCallback());
     }
 
     @Override
@@ -63,4 +64,10 @@ public class WebSocketTransport implements SocketIOTransport {
     public boolean heartbeats() {
         return true;
     }
+
+	@Override
+	public String getSessionId() {
+		return this.sessionId;
+	}
 }
+

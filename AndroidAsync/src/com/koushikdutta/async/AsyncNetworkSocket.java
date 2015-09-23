@@ -10,6 +10,7 @@ import com.koushikdutta.async.util.Allocator;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -91,7 +92,9 @@ public class AsyncNetworkSocket implements AsyncSocket {
         }
     }
     
-    private void handleRemaining(int remaining) {
+    private void handleRemaining(int remaining) throws IOException {
+        if (!mKey.isValid())
+            throw new IOException(new CancelledKeyException());
         if (remaining > 0) {
             // chunked channels should not fail
             assert !mChannel.isChunked();
@@ -102,38 +105,6 @@ public class AsyncNetworkSocket implements AsyncSocket {
             mKey.interestOps(SelectionKey.OP_READ);
         }
     }
-
-    @Override
-    public void write(final ByteBuffer b) {
-        if (mServer.getAffinity() != Thread.currentThread()) {
-            mServer.run(new Runnable() {
-                @Override
-                public void run() {
-                    write(b);
-                }
-            });
-            return;
-        }
-        try {
-            if (!mChannel.isConnected()) {
-                assert !mChannel.isChunked();
-                return;
-            }
-
-            // keep writing until the the socket can't write any more, or the
-            // data is exhausted.
-            int before = b.remaining();
-            mChannel.write(b);
-            handleRemaining(b.remaining());
-            mServer.onDataSent(before - b.remaining());
-        }
-        catch (IOException ex) {
-            closeInternal();
-            reportEndPending(ex);
-            reportClose(ex);
-        }
-    }
-
     private ByteBufferList pending = new ByteBufferList();
 //    private ByteBuffer[] buffers = new ByteBuffer[8];
 
@@ -173,6 +144,9 @@ public class AsyncNetworkSocket implements AsyncSocket {
 //                }
                 pending.add(b);
                 Util.emitAllData(this, pending);
+            }
+            else {
+                ByteBufferList.reclaim(b);
             }
 
             if (closed) {

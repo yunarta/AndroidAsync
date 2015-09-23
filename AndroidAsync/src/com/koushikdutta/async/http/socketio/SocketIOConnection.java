@@ -30,6 +30,7 @@ import java.util.Hashtable;
 class SocketIOConnection {
     AsyncHttpClient httpClient;
     int heartbeat;
+    long reconnectDelay;
     ArrayList<SocketIOClient> clients = new ArrayList<SocketIOClient>();
     SocketIOTransport transport;
     SocketIORequest request;
@@ -37,6 +38,7 @@ class SocketIOConnection {
     public SocketIOConnection(AsyncHttpClient httpClient, SocketIORequest request) {
         this.httpClient = httpClient;
         this.request = request;
+        this.reconnectDelay = this.request.config.reconnectDelay;
     }
 
     public boolean isConnected() {
@@ -104,47 +106,47 @@ class SocketIOConnection {
 
         request.logi("Reconnecting socket.io");
 
-        Cancellable connecting = httpClient.executeString(request, null)
-                .then(new TransformFuture<SocketIOTransport, String>() {
-                    @Override
-                    protected void transform(String result) throws Exception {
-                        String[] parts = result.split(":");
-                        String session = parts[0];
-                        if (!"".equals(parts[1]))
-                            heartbeat = Integer.parseInt(parts[1]) / 2 * 1000;
-                        else
-                            heartbeat = 0;
+        connecting = httpClient.executeString(request, null)
+        .then(new TransformFuture<SocketIOTransport, String>() {
+            @Override
+            protected void transform(String result) throws Exception {
+                String[] parts = result.split(":");
+                final String sessionId = parts[0];
+                if (!"".equals(parts[1]))
+                    heartbeat = Integer.parseInt(parts[1]) / 2 * 1000;
+                else
+                    heartbeat = 0;
 
                         String transportsLine = parts[3];
                         String[] transports = transportsLine.split(",");
                         HashSet<String> set = new HashSet<String>(Arrays.asList(transports));
                         final SimpleFuture<SocketIOTransport> transport = new SimpleFuture<SocketIOTransport>();
 
-                        if (set.contains("websocket")) {
-                            final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
-                                    .appendPath("websocket").appendPath(session)
-                                    .build().toString();
+                if (set.contains("websocket")) {
+                    final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
+                            .appendPath("websocket").appendPath(sessionId)
+                            .build().toString();
 
-                            httpClient.websocket(sessionUrl, null, null)
-                                    .setCallback(new FutureCallback<WebSocket>() {
-                                        @Override
-                                        public void onCompleted(Exception e, WebSocket result) {
-                                            if (e != null) {
-                                                transport.setComplete(e);
-                                                return;
-                                            }
-                                            transport.setComplete(new WebSocketTransport(result));
-                                        }
-                                    });
-                        } else if (set.contains("xhr-polling")) {
-                            final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
-                                    .appendPath("xhr-polling").appendPath(session)
-                                    .build().toString();
-                            XHRPollingTransport xhrPolling = new XHRPollingTransport(httpClient, sessionUrl);
-                            transport.setComplete(xhrPolling);
-                        } else {
-                            throw new SocketIOException("transport not supported");
+                    httpClient.websocket(sessionUrl, null, null)
+                    .setCallback(new FutureCallback<WebSocket>() {
+                        @Override
+                        public void onCompleted(Exception e, WebSocket result) {
+                            if (e != null) {
+                                transport.setComplete(e);
+                                return;
+                            }
+                            transport.setComplete(new WebSocketTransport(result, sessionId));
                         }
+                    });
+                } else if (set.contains("xhr-polling")) {
+                    final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
+                            .appendPath("xhr-polling").appendPath(sessionId)
+                            .build().toString();
+                    XHRPollingTransport xhrPolling = new XHRPollingTransport(httpClient, sessionUrl, sessionId);
+                    transport.setComplete(xhrPolling);
+                } else {
+                    throw new SocketIOException("transport not supported");
+                }
 
                         setComplete(transport);
                     }
@@ -157,11 +159,11 @@ class SocketIOConnection {
                             return;
                         }
 
-                        reconnectDelay = 1000L;
-                        SocketIOConnection.this.transport = result;
-                        attach();
-                    }
-                });
+                reconnectDelay = request.config.reconnectDelay;
+                SocketIOConnection.this.transport = result;
+                attach();
+            }
+        });
 
         if (child != null)
             child.setParent(connecting);
@@ -175,7 +177,8 @@ class SocketIOConnection {
                 if (heartbeat <= 0 || ts != transport || ts == null || !ts.isConnected())
                     return;
                 transport.send("2:::");
-                if (transport != null && transport.getServer() != null)
+
+                if (transport != null)
                     transport.getServer().postDelayed(this, heartbeat);
             }
         };
@@ -216,11 +219,23 @@ class SocketIOConnection {
             public void run() {
                 reconnect(null);
             }
-        }, reconnectDelay);
-        reconnectDelay *= 2;
+        }, nextReconnectDelay(reconnectDelay));
+
+        reconnectDelay = reconnectDelay * 2;
+        if (request.config.reconnectDelayMax > 0L) {
+            reconnectDelay = Math.min(reconnectDelay, request.config.reconnectDelayMax);
+        }
     }
 
-    long reconnectDelay = 1000L;
+    private long nextReconnectDelay(long targetDelay) {
+        if (targetDelay < 2L || targetDelay > (Long.MAX_VALUE >> 1) ||
+            !request.config.randomizeReconnectDelay)
+        {
+            return targetDelay;
+        }
+        return (targetDelay >> 1) + (long) (targetDelay * Math.random());
+    }
+
     private void reportDisconnect(final Exception ex) {
         if (ex != null) {
             request.loge("socket.io disconnected", ex);

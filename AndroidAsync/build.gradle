@@ -3,10 +3,9 @@ buildscript {
         maven { url 'http://repo1.maven.org/maven2' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.3.1'
+        classpath 'com.android.tools.build:gradle:+'
     }
 }
-
 apply plugin: 'com.android.library'
 apply from: ('https://raw.githubusercontent.com/yunarta/works-gradle-script/master/auto-configure.gradle')
 
@@ -34,15 +33,15 @@ android {
     }
 
     defaultConfig {
+        targetSdkVersion autoCompileSdkVersion(23)
         minSdkVersion 9
-        targetSdkVersion autoCompileSdkVersion(19)
     }
 
-    compileSdkVersion autoCompileSdkVersion(19)
-    buildToolsVersion autoBuildToolsVersion("20.0.0")
+    compileSdkVersion autoCompileSdkVersion(23)
+    buildToolsVersion autoBuildToolsVersion("23.0.0")
 }
 
 // upload to maven task
 if (System.getenv().I_AM_KOUSH == 'true') {
-  apply from: 'https://raw.githubusercontent.com/koush/mvn-repo/master/maven.gradle'
+    apply from: 'https://raw.githubusercontent.com/koush/mvn-repo/master/maven.gradle'
 }

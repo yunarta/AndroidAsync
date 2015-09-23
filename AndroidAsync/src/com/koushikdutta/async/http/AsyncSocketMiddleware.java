@@ -6,10 +6,10 @@ import com.koushikdutta.async.ArrayDeque;
 import com.koushikdutta.async.AsyncSocket;
 import com.koushikdutta.async.ByteBufferList;
 import com.koushikdutta.async.DataEmitter;
-import com.koushikdutta.async.NullDataCallback;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.ConnectCallback;
 import com.koushikdutta.async.callback.ContinuationCallback;
+import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.future.Cancellable;
 import com.koushikdutta.async.future.Continuation;
 import com.koushikdutta.async.future.SimpleCancellable;
@@ -34,7 +34,7 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
     public void setIdleTimeoutMs(int idleTimeoutMs) {
         this.idleTimeoutMs = idleTimeoutMs;
     }
-
+    
     public int getSchemePort(Uri uri) {
         if (uri.getScheme() == null || !uri.getScheme().equals(scheme))
             return -1;
@@ -52,7 +52,7 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
 
     protected AsyncHttpClient mClient;
 
-    protected ConnectCallback wrapCallback(ConnectCallback callback, Uri uri, int port, boolean proxied) {
+    protected ConnectCallback wrapCallback(GetSocketData data, Uri uri, int port, boolean proxied, ConnectCallback callback) {
         return callback;
     }
 
@@ -127,6 +127,8 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
             return null;
         }
 
+        data.state.put("socket-owner", this);
+
         final String lookup = computeLookup(uri, port, data.request.getProxyHost(), data.request.getProxyPort());
         ConnectionInfo info = getOrCreateConnectionInfo(lookup);
         synchronized (AsyncSocketMiddleware.this) {
@@ -139,12 +141,11 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
 
             info.openCount++;
 
-            data.state.put(getClass().getCanonicalName() + ".owned", true);
-
             while (!info.sockets.isEmpty()) {
                 IdleSocketHolder idleSocketHolder = info.sockets.pop();
                 final AsyncSocket socket = idleSocketHolder.socket;
                 if (idleSocketHolder.idleTime + idleTimeoutMs < System.currentTimeMillis()) {
+                    socket.setClosedCallback(null);
                     socket.close();
                     continue;
                 }
@@ -167,91 +168,93 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
             String unresolvedHost;
             int unresolvedPort;
             boolean proxied = false;
+            if (data.request.getProxyHost() == null && proxyHost != null)
+                data.request.enableProxy(proxyHost, proxyPort);
             if (data.request.getProxyHost() != null) {
                 unresolvedHost = data.request.getProxyHost();
                 unresolvedPort = data.request.getProxyPort();
-                // set the host and port explicitly for proxied connections
-                data.request.getHeaders().getHeaders().setStatusLine(data.request.getProxyRequestLine().toString());
-                proxied = true;
-            }
-            else if (proxyHost != null) {
-                unresolvedHost = proxyHost;
-                unresolvedPort = proxyPort;
-                // set the host and port explicitly for proxied connections
-                data.request.getHeaders().getHeaders().setStatusLine(data.request.getProxyRequestLine().toString());
                 proxied = true;
             }
             else {
                 unresolvedHost = uri.getHost();
                 unresolvedPort = port;
             }
-            return mClient.getServer().connectSocket(unresolvedHost, unresolvedPort, wrapCallback(data.connectCallback, uri, port, proxied));
+            if (proxied) {
+                data.request.logv("Using proxy: " + unresolvedHost + ":" + unresolvedPort);
+            }
+            return mClient.getServer().connectSocket(unresolvedHost, unresolvedPort,
+                wrapCallback(data, uri, port, proxied, data.connectCallback));
         }
 
         // try to connect to everything...
         data.request.logv("Resolving domain and connecting to all available addresses");
         return mClient.getServer().getAllByName(uri.getHost())
-                .then(new TransformFuture<AsyncSocket, InetAddress[]>() {
-                    Exception lastException;
+        .then(new TransformFuture<AsyncSocket, InetAddress[]>() {
+            Exception lastException;
 
+            @Override
+            protected void error(Exception e) {
+                super.error(e);
+                wrapCallback(data, uri, port, false, data.connectCallback).onConnectCompleted(e, null);
+            }
+
+            @Override
+            protected void transform(final InetAddress[] result) throws Exception {
+                Continuation keepTrying = new Continuation(new CompletedCallback() {
                     @Override
-                    protected void error(Exception e) {
-                        super.error(e);
-                        data.connectCallback.onConnectCompleted(e, null);
-                    }
-
-                    @Override
-                    protected void transform(final InetAddress[] result) throws Exception {
-                        Continuation keepTrying = new Continuation(new CompletedCallback() {
-                            @Override
-                            public void onCompleted(Exception ex) {
-                                // if it completed, that means that the connection failed
-                                if (lastException == null)
-                                    lastException = new ConnectionFailedException("Unable to connect to remote address");
-                                setComplete(lastException);
-                            }
-                        });
-
-                        for (final InetAddress address: result) {
-                            keepTrying.add(new ContinuationCallback() {
-                                @Override
-                                public void onContinue(Continuation continuation, final CompletedCallback next) throws Exception {
-                                    mClient.getServer().connectSocket(new InetSocketAddress(address, port), wrapCallback(new ConnectCallback() {
-                                        @Override
-                                        public void onConnectCompleted(Exception ex, AsyncSocket socket) {
-                                            if (isDone()) {
-                                                lastException = new Exception("internal error during connect");
-                                                next.onCompleted(null);
-                                                return;
-                                            }
-
-                                            // try the next address
-                                            if (ex != null) {
-                                                lastException = ex;
-                                                next.onCompleted(null);
-                                                return;
-                                            }
-
-                                            // if the socket is no longer needed, just hang onto it...
-                                            if (isDone() || isCancelled()) {
-                                                data.request.logd("Recycling extra socket leftover from cancelled operation");
-                                                idleSocket(socket);
-                                                recycleSocket(socket, data.request);
-                                                return;
-                                            }
-
-                                            if (setComplete(null, socket)) {
-                                                data.connectCallback.onConnectCompleted(ex, socket);
-                                            }
-                                        }
-                                    }, uri, port, false));
-                                }
-                            });
+                    public void onCompleted(Exception ex) {
+                        // if it completed, that means that the connection failed
+                        if (lastException == null)
+                            lastException = new ConnectionFailedException("Unable to connect to remote address");
+                        if (setComplete(lastException)) {
+                            wrapCallback(data, uri, port, false, data.connectCallback).onConnectCompleted(lastException, null);
                         }
-
-                        keepTrying.start();
                     }
                 });
+
+                for (final InetAddress address: result) {
+                    final String inetSockAddress = String.format("%s:%s", address, port);
+                    keepTrying.add(new ContinuationCallback() {
+                        @Override
+                        public void onContinue(Continuation continuation, final CompletedCallback next) throws Exception {
+                            data.request.logv("attempting connection to " + inetSockAddress);
+                            mClient.getServer().connectSocket(new InetSocketAddress(address, port),
+                                wrapCallback(data, uri, port, false, new ConnectCallback() {
+                                @Override
+                                public void onConnectCompleted(Exception ex, AsyncSocket socket) {
+                                    if (isDone()) {
+                                        lastException = new Exception("internal error during connect to " + inetSockAddress);
+                                        next.onCompleted(null);
+                                        return;
+                                    }
+
+                                    // try the next address
+                                    if (ex != null) {
+                                        lastException = ex;
+                                        next.onCompleted(null);
+                                        return;
+                                    }
+
+                                    // if the socket is no longer needed, just hang onto it...
+                                    if (isDone() || isCancelled()) {
+                                        data.request.logd("Recycling extra socket leftover from cancelled operation");
+                                        idleSocket(socket);
+                                        recycleSocket(socket, data.request);
+                                        return;
+                                    }
+
+                                    if (setComplete(null, socket)) {
+                                        data.connectCallback.onConnectCompleted(null, socket);
+                                    }
+                                }
+                            }));
+                        }
+                    });
+                }
+
+                keepTrying.start();
+            }
+        });
     }
 
     private ConnectionInfo getOrCreateConnectionInfo(String lookup) {
@@ -273,6 +276,8 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
             if (idleSocketHolder.idleTime + idleTimeoutMs > System.currentTimeMillis())
                 break;
             info.sockets.pop();
+            // remove the callback, prevent reentrancy.
+            socket.setClosedCallback(null);
             socket.close();
         }
         if (info.openCount == 0 && info.queue.isEmpty() && info.sockets.isEmpty())
@@ -297,7 +302,6 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
             public void onCompleted(Exception ex) {
                 synchronized (AsyncSocketMiddleware.this) {
                     sockets.remove(idleSocketHolder);
-                    socket.setClosedCallback(null);
                     maybeCleanupConnectionInfo(lookup);
                 }
             }
@@ -309,17 +313,19 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
         socket.setEndCallback(new CompletedCallback() {
             @Override
             public void onCompleted(Exception ex) {
+                socket.setClosedCallback(null);
                 socket.close();
             }
         });
         socket.setWriteableCallback(null);
         // should not get any data after this point...
         // if so, eat it and disconnect.
-        socket.setDataCallback(new NullDataCallback() {
+        socket.setDataCallback(new DataCallback.NullDataCallback() {
             @Override
             public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
                 super.onDataAvailable(emitter, bb);
                 bb.recycle();
+                socket.setClosedCallback(null);
                 socket.close();
             }
         });
@@ -347,21 +353,23 @@ public class AsyncSocketMiddleware extends SimpleMiddleware {
     }
 
     @Override
-    public void onRequestComplete(final OnRequestCompleteData data) {
-        if (!data.state.get(getClass().getCanonicalName() + ".owned", false)) {
+    public void onResponseComplete(final OnResponseCompleteDataOnRequestSentData data) {
+        if (data.state.get("socket-owner") != this)
             return;
-        }
 
         try {
             idleSocket(data.socket);
 
             if (data.exception != null || !data.socket.isOpen()) {
                 data.request.logv("closing out socket (exception)");
+                data.socket.setClosedCallback(null);
                 data.socket.close();
                 return;
             }
-            if (!HttpUtil.isKeepAlive(data.headers.getHeaders()) || !HttpUtil.isKeepAlive(data.request.getHeaders().getHeaders())) {
+            if (!HttpUtil.isKeepAlive(data.response.protocol(), data.response.headers())
+                || !HttpUtil.isKeepAlive(Protocol.HTTP_1_1, data.request.getHeaders())) {
                 data.request.logv("closing out socket (not keep alive)");
+                data.socket.setClosedCallback(null);
                 data.socket.close();
                 return;
             }
