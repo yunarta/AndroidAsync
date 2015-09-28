@@ -10,8 +10,6 @@ apply plugin: 'com.android.library'
 apply from: ('https://raw.githubusercontent.com/yunarta/works-gradle-script/master/auto-configure.gradle')
 
 android {
-    useLibrary 'org.apache.http.legacy'
-
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -33,11 +31,11 @@ android {
     }
 
     defaultConfig {
-        targetSdkVersion autoCompileSdkVersion(23)
+        targetSdkVersion 22
         minSdkVersion 9
     }
 
-    compileSdkVersion autoCompileSdkVersion(23)
+    compileSdkVersion 22
     buildToolsVersion autoBuildToolsVersion("23.0.0")
 }
 
