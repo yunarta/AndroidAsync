@@ -30,7 +30,7 @@ apply plugin: 'maven'
 apply from: ('https://raw.githubusercontent.com/yunarta/works-gradle-script/master/auto-configure.gradle')
 
 group 'jp.co.vcube.android'
-version '2.1.8'
+version '2.1.9'
 
 android {
     sourceSets {
