@@ -23,11 +23,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 /**
  * Created by koush on 7/1/13.
  */
 class SocketIOConnection {
+    private static final Logger LOGGER = Logger.getLogger("com.koushikdutta.async.http.socketio.SocketIOConnection");
+
     AsyncHttpClient httpClient;
     int heartbeat;
     long reconnectDelay;
@@ -177,6 +180,8 @@ class SocketIOConnection {
                 if (heartbeat <= 0 || ts != transport || ts == null || !ts.isConnected())
                     return;
                 transport.send("2:::");
+
+                LOGGER.info("Sending heartbeat");
 
                 if (transport != null)
                     transport.getServer().postDelayed(this, heartbeat);

@@ -30,7 +30,7 @@ apply plugin: 'maven'
 apply from: ('https://raw.githubusercontent.com/yunarta/works-gradle-script/master/auto-configure.gradle')
 
 group 'jp.co.vcube.android'
-version '2.1.9'
+version '2.1.10-logging'
 
 android {
     sourceSets {
@@ -54,23 +54,23 @@ android {
     }
 
     defaultConfig {
-        targetSdkVersion 22
+        targetSdkVersion 23
         minSdkVersion 9
         versionCode 1
         versionName version
     }
 
-    compileSdkVersion 22
-    buildToolsVersion autoBuildToolsVersion("23.0.0")
+    compileSdkVersion 23
+    buildToolsVersion autoBuildToolsVersion("23.0.2")
 }
 
 def generatePom() {
     def pom = pom {
         project {
-            name project.name
+            name 'AndroidAsync'
             packaging 'aar'
             groupId project.group
-            artifactId project.name
+            artifactId 'AndroidAsync'
             version project.version
             inceptionYear '2015'
 

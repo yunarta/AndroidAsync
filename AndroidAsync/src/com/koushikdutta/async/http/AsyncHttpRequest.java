@@ -7,6 +7,8 @@ import com.koushikdutta.async.AsyncSSLException;
 import com.koushikdutta.async.http.body.AsyncHttpRequestBody;
 
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AsyncHttpRequest {
     public RequestLine getRequestLine() {
@@ -191,12 +193,18 @@ public class AsyncHttpRequest {
             elapsed = 0;
         return String.format(Locale.ENGLISH, "(%d ms) %s: %s", elapsed, getUri(), message);
     }
+
+    Logger LOGGER;
+
     public void logi(String message) {
         if (LOGTAG == null)
             return;
         if (logLevel > Log.INFO)
             return;
         Log.i(LOGTAG, getLogMessage(message));
+
+        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        LOGGER.info(message);
     }
     public void logv(String message) {
         if (LOGTAG == null)
@@ -204,6 +212,9 @@ public class AsyncHttpRequest {
         if (logLevel > Log.VERBOSE)
             return;
         Log.v(LOGTAG, getLogMessage(message));
+
+        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        LOGGER.fine(getLogMessage(message));
     }
     public void logw(String message) {
         if (LOGTAG == null)
@@ -211,6 +222,9 @@ public class AsyncHttpRequest {
         if (logLevel > Log.WARN)
             return;
         Log.w(LOGTAG, getLogMessage(message));
+
+        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        LOGGER.warning(getLogMessage(message));
     }
     public void logd(String message) {
         if (LOGTAG == null)
@@ -218,6 +232,9 @@ public class AsyncHttpRequest {
         if (logLevel > Log.DEBUG)
             return;
         if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, getLogMessage(message));
+
+        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        LOGGER.fine(getLogMessage(message));
     }
     public void logd(String message, Exception e) {
         if (LOGTAG == null)
@@ -226,6 +243,9 @@ public class AsyncHttpRequest {
             return;
         if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, getLogMessage(message));
         if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, e.getMessage(), e);
+
+        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        LOGGER.log(Level.SEVERE, getLogMessage(message), e);
     }
     public void loge(String message) {
         if (LOGTAG == null)
@@ -233,6 +253,9 @@ public class AsyncHttpRequest {
         if (logLevel > Log.ERROR)
             return;
         Log.e(LOGTAG, getLogMessage(message));
+
+        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        LOGGER.severe(getLogMessage(message));
     }
     public void loge(String message, Exception e) {
         if (LOGTAG == null)
@@ -241,5 +264,8 @@ public class AsyncHttpRequest {
             return;
         Log.e(LOGTAG, getLogMessage(message));
         Log.e(LOGTAG, e.getMessage(), e);
+
+        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        LOGGER.log(Level.SEVERE, getLogMessage(message), e);
     }
 }

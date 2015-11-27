@@ -1,7 +1,5 @@
 package com.koushikdutta.async;
 
-import android.util.Log;
-
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.WritableCallback;
@@ -14,6 +12,8 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AsyncNetworkSocket implements AsyncSocket {
     AsyncNetworkSocket() {
@@ -37,7 +37,6 @@ public class AsyncNetworkSocket implements AsyncSocket {
     
     void attach(DatagramChannel channel) throws IOException {
         mChannel = new DatagramChannelWrapper(channel);
-        // keep udp at roughly the mtu, which is 1540 or something
         // letting it grow freaks out nio apparently.
         allocator = new Allocator(8192);
     }
@@ -230,7 +229,8 @@ public class AsyncNetworkSocket implements AsyncSocket {
         if (mCompletedCallback != null)
             mCompletedCallback.onCompleted(e);
         else if (e != null) {
-            Log.e("NIO", "Unhandled exception", e);
+            Logger.getLogger("com.koushikdutta.async.NIO").log(Level.SEVERE, "Unhandled exception", e);
+            // Log.e("NIO", "Unhandled exception", e);
         }
     }
     boolean mEndReported;
