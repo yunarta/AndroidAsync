@@ -2,10 +2,12 @@ buildscript {
     repositories {
         jcenter()
         maven { url 'http://repo1.maven.org/maven2' }
+        maven { url 'https://dl.bintray.com/yunarta-kartawahyudi/maven/' }
     }
 
     dependencies {
         classpath 'com.android.tools.build:gradle:2.0.0-alpha2'
+        classpath 'com.mobilesolutionworks:works-autoconfig:1.0.0'
     }
 }
 
@@ -28,8 +30,7 @@ repositories {
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven'
-
-apply from: ('https://raw.githubusercontent.com/yunarta/works-gradle-script/master/auto-configure.gradle')
+apply plugin: 'com.mobilesolutionworks.android-autoconfig'
 
 group 'jp.co.vcube.android'
 version '2.1.10-logging'
@@ -62,8 +63,8 @@ android {
         versionName version
     }
 
-    compileSdkVersion 23
-    buildToolsVersion autoBuildToolsVersion("23.0.2")
+    compileSdkVersion autoConfig.sdk(23)
+    buildToolsVersion autoConfig.buildTools("23.0.2")
 }
 
 def generatePom() {
