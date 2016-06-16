@@ -1,7 +1,6 @@
 package com.koushikdutta.async;
 
 import android.os.Build;
-import android.util.Log;
 
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
@@ -17,6 +16,8 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -30,6 +31,9 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket {
+
+    public static final Logger LOGGER = Logger.getLogger(AsyncSSLSocketWrapper.class.getName());
+
     public interface HandshakeCallback {
         public void onHandshakeCompleted(Exception e, AsyncSSLSocket socket);
     }
@@ -69,7 +73,7 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                 throw new Exception();
             defaultSSLContext = SSLContext.getInstance("Default");
         }
-        catch (Exception ex) {
+        catch (final Exception ex) {
             try {
                 defaultSSLContext = SSLContext.getInstance("TLS");
                 TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
@@ -82,16 +86,20 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
 
                     public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
                         // vcube changes
-                        if(BuildConfig.DEBUG) Log.d("MainActivity", "checkServerTrusted:: ");
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.finest("Static:: checkServerTrusted");
+                        }
                         // end vcube changes
+
                         for (X509Certificate cert : certs) {
                             if (cert != null && cert.getCriticalExtensionOIDs() != null){
                                 // vcube changes
-                                Iterator<String> it = cert.getCriticalExtensionOIDs().iterator();
-                                while (it.hasNext()) {
-                                    String ext = it.next();
-
-                                    if(BuildConfig.DEBUG)Log.d("MainActivity", "ext: " + ext);
+                                if (LOGGER.isLoggable(Level.FINEST)) {
+                                    Iterator<String> it = cert.getCriticalExtensionOIDs().iterator();
+                                    while (it.hasNext()) {
+                                        String ext = it.next();
+                                        LOGGER.finest("Static:: Extension: " + ext);
+                                    }
                                 }
                                 // end of vcube changes
                                 cert.getCriticalExtensionOIDs().remove("2.5.29.15");
@@ -320,8 +328,9 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                     TrustManager[] trustManagers = this.trustManagers;
                     if (trustManagers == null) {
                         // vcube changes
-                        if(BuildConfig.DEBUG)Log.d("MainActivity",
-                                "3333 handleHandshakeStatus:: TrustManagerFactory.getDefaultAlgorithm(): " + TrustManagerFactory.getDefaultAlgorithm());
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.finest("HandleHandshakeStatus:: TrustManagerFactory.getDefaultAlgorithm() = " + TrustManagerFactory.getDefaultAlgorithm());
+                        }
                         // end of vcube changes
 
                         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -332,7 +341,9 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                     Exception peerUnverifiedCause = null;
                     for (TrustManager tm : trustManagers) {
                         // vcube changes
-                        if(BuildConfig.DEBUG)Log.d("MainActivity", "2222 handleHandshakeStatus:: tm: " + tm);
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.finest("HandleHandshakeStatus:: TrustManager = " + tm);
+                        }
                         // end of vcube changes
 
                         try {
@@ -340,12 +351,10 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                             peerCertificates = (X509Certificate[]) engine.getSession().getPeerCertificates();
 
                             // vcube changes
-                            if(BuildConfig.DEBUG) {
+                            if (LOGGER.isLoggable(Level.FINEST)) {
                                 for (int i = 0; i < peerCertificates.length; i++) {
-                                    Log.d("MainActivity", "cert: " + peerCertificates[i].toString());
+                                    LOGGER.finest("HandleHandshakeStatus:: Certificate = " + peerCertificates[i].toString());
                                 }
-
-                                Log.d("MainActivity", "1111 handleHandshakeStatus:: calling checkServerTrusted");
                             }
                             // end of vcube changes
 
@@ -364,13 +373,17 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                         }
                         catch (GeneralSecurityException ex) {
                             // vcube changes
-                            if(BuildConfig.DEBUG)Log.d("MainActivity", "4444 GeneralSecurityException", ex);
+                            if (LOGGER.isLoggable(Level.FINEST)) {
+                                LOGGER.log(Level.SEVERE, "HandleHandshakeStatus:: Error", ex);
+                            }
                             // end of vcube changes
                             peerUnverifiedCause = ex;
                         }
                         catch (SSLException ex) {
                             // vcube changes
-                            if(BuildConfig.DEBUG)Log.d("MainActivity", "5555, Certificate not trusted!!!! Throwing exception!!!");
+                            if (LOGGER.isLoggable(Level.FINEST)) {
+                                LOGGER.log(Level.SEVERE, "HandleHandshakeStatus:: Error", ex);
+                            }
                             // end of vcube changes
                             peerUnverifiedCause = ex;
                         }

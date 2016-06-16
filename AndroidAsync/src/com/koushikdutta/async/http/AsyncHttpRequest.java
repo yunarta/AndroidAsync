@@ -17,17 +17,17 @@ public class AsyncHttpRequest {
             public String getUri() {
                 return AsyncHttpRequest.this.getUri().toString();
             }
-            
+
             @Override
             public ProtocolVersion getProtocolVersion() {
                 return new ProtocolVersion("HTTP", 1, 1);
             }
-            
+
             @Override
             public String getMethod() {
                 return mMethod;
             }
-            
+
             @Override
             public String toString() {
                 if (proxyHost != null)
@@ -48,10 +48,11 @@ public class AsyncHttpRequest {
         String agent = System.getProperty("http.agent");
         return agent != null ? agent : ("Java" + System.getProperty("java.version"));
     }
-    
+
     private String mMethod;
+
     public String getMethod() {
-       return mMethod; 
+        return mMethod;
     }
 
     public AsyncHttpRequest setMethod(String method) {
@@ -92,10 +93,11 @@ public class AsyncHttpRequest {
     }
 
     Uri uri;
+
     public Uri getUri() {
         return uri;
     }
-    
+
     private Headers mRawHeaders = new Headers();
 
     public Headers getHeaders() {
@@ -103,15 +105,18 @@ public class AsyncHttpRequest {
     }
 
     private boolean mFollowRedirect = true;
+
     public boolean getFollowRedirect() {
         return mFollowRedirect;
     }
+
     public AsyncHttpRequest setFollowRedirect(boolean follow) {
         mFollowRedirect = follow;
         return this;
     }
 
     private AsyncHttpRequestBody mBody;
+
     public void setBody(AsyncHttpRequestBody body) {
         mBody = body;
     }
@@ -125,6 +130,7 @@ public class AsyncHttpRequest {
 
     public static final int DEFAULT_TIMEOUT = 30000;
     int mTimeout = DEFAULT_TIMEOUT;
+
     public int getTimeout() {
         return mTimeout;
     }
@@ -146,6 +152,7 @@ public class AsyncHttpRequest {
 
     String proxyHost;
     int proxyPort = -1;
+
     public void enableProxy(String host, int port) {
         proxyHost = host;
         proxyPort = port;
@@ -175,16 +182,21 @@ public class AsyncHttpRequest {
         LOGTAG = tag;
         logLevel = level;
     }
+
     // request level logging
     String LOGTAG;
     int logLevel;
+
     public int getLogLevel() {
         return logLevel;
     }
+
     public String getLogTag() {
         return LOGTAG;
     }
+
     long executionTime;
+
     private String getLogMessage(String message) {
         long elapsed;
         if (executionTime != 0)
@@ -194,7 +206,7 @@ public class AsyncHttpRequest {
         return String.format(Locale.ENGLISH, "(%d ms) %s: %s", elapsed, getUri(), message);
     }
 
-    Logger LOGGER;
+
 
     public void logi(String message) {
         if (LOGTAG == null)
@@ -203,9 +215,10 @@ public class AsyncHttpRequest {
             return;
         Log.i(LOGTAG, getLogMessage(message));
 
-        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        makeLogger();
         LOGGER.info(message);
     }
+
     public void logv(String message) {
         if (LOGTAG == null)
             return;
@@ -213,9 +226,10 @@ public class AsyncHttpRequest {
             return;
         Log.v(LOGTAG, getLogMessage(message));
 
-        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        makeLogger();
         LOGGER.fine(getLogMessage(message));
     }
+
     public void logw(String message) {
         if (LOGTAG == null)
             return;
@@ -223,49 +237,53 @@ public class AsyncHttpRequest {
             return;
         Log.w(LOGTAG, getLogMessage(message));
 
-        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
+        makeLogger();
         LOGGER.warning(getLogMessage(message));
     }
+
     public void logd(String message) {
         if (LOGTAG == null)
             return;
-        if (logLevel > Log.DEBUG)
-            return;
-        if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, getLogMessage(message));
 
-        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
-        LOGGER.fine(getLogMessage(message));
+        makeLogger();
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.finest(getLogMessage(message));
+        }
     }
+
     public void logd(String message, Exception e) {
         if (LOGTAG == null)
             return;
-        if (logLevel > Log.DEBUG)
-            return;
-        if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, getLogMessage(message));
-        if (Log.isLoggable(LOGTAG, Log.DEBUG)) Log.d(LOGTAG, e.getMessage(), e);
 
-        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
-        LOGGER.log(Level.SEVERE, getLogMessage(message), e);
+        makeLogger();
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.SEVERE, getLogMessage(message), e);
+        }
     }
+
     public void loge(String message) {
         if (LOGTAG == null)
             return;
-        if (logLevel > Log.ERROR)
-            return;
-        Log.e(LOGTAG, getLogMessage(message));
 
-        if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
-        LOGGER.severe(getLogMessage(message));
+        makeLogger();
+        if (LOGGER.isLoggable(Level.SEVERE)) {
+            LOGGER.log(Level.SEVERE, getLogMessage(message));
+        }
     }
+
     public void loge(String message, Exception e) {
         if (LOGTAG == null)
             return;
-        if (logLevel > Log.ERROR)
-            return;
-        Log.e(LOGTAG, getLogMessage(message));
-        Log.e(LOGTAG, e.getMessage(), e);
 
+        makeLogger();
+        if (LOGGER.isLoggable(Level.SEVERE)) {
+            LOGGER.log(Level.SEVERE, getLogMessage(message), e);
+        }
+    }
+
+    Logger LOGGER;
+
+    private void makeLogger() {
         if (LOGGER == null) LOGGER = Logger.getLogger(LOGTAG);
-        LOGGER.log(Level.SEVERE, getLogMessage(message), e);
     }
 }

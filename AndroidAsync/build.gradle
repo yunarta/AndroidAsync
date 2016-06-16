@@ -30,7 +30,6 @@ repositories {
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven'
-apply plugin: 'com.mobilesolutionworks.android-autoconfig'
 
 group 'jp.co.vcube.android'
 version '2.1.10-logging'
@@ -63,8 +62,8 @@ android {
         versionName version
     }
 
-    compileSdkVersion autoConfig.sdk(23)
-    buildToolsVersion autoConfig.buildTools("23.0.2")
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
 }
 
 def generatePom() {

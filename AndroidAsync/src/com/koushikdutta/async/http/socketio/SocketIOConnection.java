@@ -29,6 +29,7 @@ import java.util.logging.Logger;
  * Created by koush on 7/1/13.
  */
 class SocketIOConnection {
+
     private static final Logger LOGGER = Logger.getLogger("com.koushikdutta.async.http.socketio.SocketIOConnection");
 
     AsyncHttpClient httpClient;
@@ -180,8 +181,6 @@ class SocketIOConnection {
                 if (heartbeat <= 0 || ts != transport || ts == null || !ts.isConnected())
                     return;
                 transport.send("2:::");
-
-                LOGGER.info("Sending heartbeat");
 
                 if (transport != null)
                     transport.getServer().postDelayed(this, heartbeat);
@@ -385,7 +384,6 @@ class SocketIOConnection {
             @Override
             public void onStringAvailable(String message) {
                 try {
-//                    Log.d(TAG, "Message: " + message);
                     String[] parts = message.split(":", 4);
                     int code = Integer.parseInt(parts[0]);
                     switch (code) {
