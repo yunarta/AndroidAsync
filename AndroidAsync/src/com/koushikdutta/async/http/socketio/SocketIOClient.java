@@ -162,6 +162,10 @@ public class SocketIOClient extends EventEmitter {
         this.connectCallback = callback;
     }
 
+    public String getEndpoint() {
+        return endpoint;
+    }
+
     public boolean isConnected() {
         return connected && !disconnected && connection.isConnected();
     }
