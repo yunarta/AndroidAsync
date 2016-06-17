@@ -131,8 +131,7 @@ class SocketIOConnection {
                             .appendPath("websocket").appendPath(sessionId)
                             .build().toString();
 
-                    httpClient.websocket(sessionUrl, null, null)
-                    .setCallback(new FutureCallback<WebSocket>() {
+                    httpClient.websocket(sessionUrl, null, null)                    .setCallback(new FutureCallback<WebSocket>() {
                         @Override
                         public void onCompleted(Exception e, WebSocket result) {
                             if (e != null) {
@@ -399,6 +398,14 @@ class SocketIOConnection {
                         case 2:
                             // heartbeat
                             transport.send("2::");
+                            select(null, new SelectCallback() {
+                                @Override
+                                public void onSelect(SocketIOClient client) {
+                                    if (client.heartbeatCallback != null) {
+                                        client.heartbeatCallback.onHeartbeat(client);
+                                    }
+                                }
+                            });
                             break;
                         case 3: {
                             // message

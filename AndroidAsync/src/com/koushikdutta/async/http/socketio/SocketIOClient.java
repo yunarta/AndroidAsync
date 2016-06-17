@@ -130,6 +130,14 @@ public class SocketIOClient extends EventEmitter {
         disconnectCallback = callback;
     }
 
+    HeartbeatCallback heartbeatCallback;
+    public HeartbeatCallback getHeartbeatCallback() {
+        return heartbeatCallback;
+    }
+    public void setHeartbeatCallback(HeartbeatCallback heartbeatCallback) {
+        this.heartbeatCallback = heartbeatCallback;
+    }
+
     ReconnectCallback reconnectCallback;
     public ReconnectCallback getReconnectCallback() {
         return reconnectCallback;
