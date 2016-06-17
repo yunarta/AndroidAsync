@@ -32,7 +32,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
 group 'jp.co.vcube.android'
-version '2.1.12'
+version '2.1.13'
 
 android {
     sourceSets {
