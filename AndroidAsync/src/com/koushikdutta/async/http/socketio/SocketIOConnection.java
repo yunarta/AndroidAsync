@@ -36,6 +36,7 @@ class SocketIOConnection {
     int heartbeat;
     long reconnectDelay;
     ArrayList<SocketIOClient> clients = new ArrayList<SocketIOClient>();
+
     SocketIOTransport transport;
     SocketIORequest request;
 
@@ -131,7 +132,8 @@ class SocketIOConnection {
                             .appendPath("websocket").appendPath(sessionId)
                             .build().toString();
 
-                    httpClient.websocket(sessionUrl, null, null)                    .setCallback(new FutureCallback<WebSocket>() {
+                    httpClient.websocket(sessionUrl, null, null)
+                    .setCallback(new FutureCallback<WebSocket>() {
                         @Override
                         public void onCompleted(Exception e, WebSocket result) {
                             if (e != null) {
@@ -177,14 +179,16 @@ class SocketIOConnection {
         Runnable heartbeatRunner = new Runnable() {
             @Override
             public void run() {
-                if (heartbeat <= 0 || ts != transport || ts == null || !ts.isConnected())
-                    return;
-                transport.send("2:::");
+                final SocketIOTransport ts = transport;
 
-                if (transport != null)
-                    transport.getServer().postDelayed(this, heartbeat);
+                if (heartbeat <= 0 || ts == null || !ts.isConnected())
+                    return;
+
+                ts.send("2:::");
+                ts.getServer().postDelayed(this, heartbeat);
             }
         };
+
         heartbeatRunner.run();
     }
 

@@ -1,5 +1,7 @@
 package com.koushikdutta.async;
 
+import android.util.Log;
+
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.WritableCallback;
@@ -37,6 +39,7 @@ public class AsyncNetworkSocket implements AsyncSocket {
     
     void attach(DatagramChannel channel) throws IOException {
         mChannel = new DatagramChannelWrapper(channel);
+        // keep udp at roughly the mtu, which is 1540 or something
         // letting it grow freaks out nio apparently.
         allocator = new Allocator(8192);
     }
@@ -47,7 +50,10 @@ public class AsyncNetworkSocket implements AsyncSocket {
     
     public void onDataWritable() {
 //        assert mWriteableHandler != null;
-        mKey.interestOps(SelectionKey.OP_READ);
+        if (!mChannel.isChunked()) {
+            // turn write off
+            mKey.interestOps(~SelectionKey.OP_WRITE & mKey.interestOps());
+        }
         if (mWriteableHandler != null)
             mWriteableHandler.onWriteable();
     }
@@ -99,10 +105,12 @@ public class AsyncNetworkSocket implements AsyncSocket {
             // chunked channels should not fail
             assert !mChannel.isChunked();
             // register for a write notification if a write fails
-            mKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            // turn write on
+            mKey.interestOps(SelectionKey.OP_WRITE | mKey.interestOps());
         }
         else {
-            mKey.interestOps(SelectionKey.OP_READ);
+            // turn write off
+            mKey.interestOps(~SelectionKey.OP_WRITE & mKey.interestOps());
         }
     }
     private ByteBufferList pending = new ByteBufferList();

@@ -185,16 +185,16 @@ MultipartFormDataBody body = new MultipartFormDataBody();
 body.addFilePart("my-file", new File("/path/to/file.txt");
 body.addStringPart("foo", "bar");
 post.setBody(body);
-AsyncHttpClient.getDefaultInstance().execute(post, new StringCallback() {
-    @Override
-    public void onCompleted(Exception ex, AsyncHttpResponse source, String result) {
-        if (ex != null) {
-            ex.printStackTrace();
-            return;
+AsyncHttpClient.getDefaultInstance().executeString(post, new AsyncHttpClient.StringCallback(){
+        @Override
+        public void onCompleted(Exception ex, AsyncHttpResponse source, String result) {
+            if (ex != null) {
+                ex.printStackTrace();
+                return;
+            }
+            System.out.println("Server says: " + result);
         }
-        System.out.println("Server says: " + result);
-    }
-});
+    });
 ```
 
 
@@ -227,7 +227,7 @@ server.websocket("/live", new WebSocketRequestCallback() {
         _sockets.add(webSocket);
         
         //Use this to clean up any references to your websocket
-        websocket.setClosedCallback(new CompletedCallback() {
+        webSocket.setClosedCallback(new CompletedCallback() {
             @Override
             public void onCompleted(Exception ex) {
                 try {
