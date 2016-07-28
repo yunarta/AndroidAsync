@@ -6,33 +6,22 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0-alpha2'
-        classpath 'com.mobilesolutionworks:works-autoconfig:1.0.0'
-    }
-}
+        classpath 'com.android.tools.build:gradle:2.1.0'
 
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-repositories {
-    maven {
-        credentials {
-            username properties.getProperty('maven1.user')
-            password properties.getProperty('maven1.password')
+        Properties publisher = new Properties()
+        if (project.rootProject.file('publish.properties').exists()) {
+            publisher.load project.rootProject.file('publish.properties').newDataInputStream()
+            if ("true".equals(publisher.get("publish"))) {
+                classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.1.1"
+            }
         }
-        authentication {
-            basic(BasicAuthentication)
-        }
-
-        url 'https://bitbucket.org/v-cube/repository_maven/raw/snapshot/'
     }
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
 
 group 'jp.co.vcube.android'
-version '2.1.13'
+version '2.1.15'
 
 android {
     sourceSets {
@@ -63,74 +52,56 @@ android {
     }
 
     compileSdkVersion 24
-    buildToolsVersion '24.0.0'
+    buildToolsVersion '24.0.1'
 }
 
-def generatePom() {
-    def pom = pom {
-        project {
-            name 'AndroidAsync'
-            packaging 'aar'
-            groupId project.group
-            artifactId 'AndroidAsync'
-            version project.version
-            inceptionYear '2015'
+//def generatePom() {
+//    def pom = pom {
+//        project {
+//            name 'AndroidAsync'
+//            packaging 'aar'
+//            groupId project.group
+//            artifactId 'AndroidAsync'
+//            version project.version
+//            inceptionYear '2015'
+//
+//            licenses {
+//                license {
+//                    name 'The Apache Software License, Version 2.0'
+//                    url 'http://www.apache.org/licenses/LICENSE-2.0'
+//                    distribution 'repo'
+//                }
+//            }
+//
+//            scm {
+//                url "https://bitbucket.org/v-cube/github-fork-androidasync"
+//                connection "scm:git:git@bitbucket.org:v-cube/github-fork-androidasync.git"
+//                developerConnection "scm:git:git@bitbucket.org:v-cube/github-fork-androidasync.git"
+//            }
+//
+//
+//            developers {
+//                developer {
+//                    id 'yunarta'
+//                    name 'Yunarta Kartawahyudi'
+//                    email 'yunarta@vcube.co.jp'
+//                    url 'http://sg.linkedin.com/in/yunarta/'
+//                    roles {
+//                        role 'author'
+//                        role 'developer'
+//                    }
+//                    timezone '+8'
+//                }
+//            }
+//        }
+//    }
+//}
 
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0'
-                    distribution 'repo'
-                }
-            }
-
-            scm {
-                url "https://bitbucket.org/v-cube/github-fork-androidasync"
-                connection "scm:git:git@bitbucket.org:v-cube/github-fork-androidasync.git"
-                developerConnection "scm:git:git@bitbucket.org:v-cube/github-fork-androidasync.git"
-            }
-
-
-            developers {
-                developer {
-                    id 'yunarta'
-                    name 'Yunarta Kartawahyudi'
-                    email 'yunarta@vcube.co.jp'
-                    url 'http://sg.linkedin.com/in/yunarta/'
-                    roles {
-                        role 'author'
-                        role 'developer'
-                    }
-                    timezone '+8'
-                }
-            }
-        }
-    }
-}
-
-// maven upload
-uploadArchives {
-    if (properties.containsKey('maven.repo.local')) {
-        repositories {
-            mavenDeployer {
-                pom = generatePom()
-
-                repository(url:new File(properties.getProperty('maven.repo.local')).toURI()) {
-                }
-            }
-        }
-    }
-    else
-    {
-        def repo = System.getProperty('HOME') + '/.m2/repository'
-        repositories {
-            mavenDeployer {
-                pom = generatePom()
-                repository(url:new File(repo).toURI()) {
-
-                }
-            }
-        }
+Properties publisher = new Properties()
+if (project.rootProject.file('publish.properties').exists()) {
+    publisher.load project.rootProject.file('publish.properties').newDataInputStream()
+    if ('true'.equals(publisher.getProperty('publish'))) {
+        apply from: 'art_publish.gradle'
     }
 }
 
