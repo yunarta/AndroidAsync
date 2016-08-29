@@ -1,39 +1,26 @@
-buildscript {
-    repositories {
-        jcenter()
-        maven { url 'http://repo1.maven.org/maven2' }
-        maven { url 'https://dl.bintray.com/yunarta-kartawahyudi/maven/' }
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.0'
-
-        Properties publisher = new Properties()
-        if (project.rootProject.file('publish.properties').exists()) {
-            publisher.load project.rootProject.file('publish.properties').newDataInputStream()
-            if ("true".equals(publisher.get("publish"))) {
-                classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.1.1"
-            }
-        }
-    }
-}
-
 apply plugin: 'com.android.library'
+apply from: 'art_publish.gradle'
 
 group 'jp.co.vcube.android'
-version '2.1.15'
+version '2.1.16'
 
 android {
+    compileSdkVersion 24
+    buildToolsVersion '24.0.1'
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 24
+
+        versionCode 1
+        versionName version
+    }
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-
             jniLibs.srcDirs = ['libs/']
-
-            java.srcDirs=['src/'
-//                          , '../conscrypt/'
-//                          , '../compat/'
-            ]
+            java.srcDirs=['src/']
         }
         androidTest.java.srcDirs=['test/src/']
         androidTest.res.srcDirs=['test/res/']
@@ -41,69 +28,17 @@ android {
     }
 
     lintOptions {
-        abortOnError false
+        disable 'Overdraw', 'ClickableViewAccessibility', 'ContentDescription', 'RtlHardcoded', 'IconMissingDensityFolder'
     }
 
-    defaultConfig {
-        targetSdkVersion 24
-        minSdkVersion 9
-        versionCode 1
-        versionName version
-    }
-
-    compileSdkVersion 24
-    buildToolsVersion '24.0.1'
-}
-
-//def generatePom() {
-//    def pom = pom {
-//        project {
-//            name 'AndroidAsync'
-//            packaging 'aar'
-//            groupId project.group
-//            artifactId 'AndroidAsync'
-//            version project.version
-//            inceptionYear '2015'
-//
-//            licenses {
-//                license {
-//                    name 'The Apache Software License, Version 2.0'
-//                    url 'http://www.apache.org/licenses/LICENSE-2.0'
-//                    distribution 'repo'
-//                }
-//            }
-//
-//            scm {
-//                url "https://bitbucket.org/v-cube/github-fork-androidasync"
-//                connection "scm:git:git@bitbucket.org:v-cube/github-fork-androidasync.git"
-//                developerConnection "scm:git:git@bitbucket.org:v-cube/github-fork-androidasync.git"
-//            }
-//
-//
-//            developers {
-//                developer {
-//                    id 'yunarta'
-//                    name 'Yunarta Kartawahyudi'
-//                    email 'yunarta@vcube.co.jp'
-//                    url 'http://sg.linkedin.com/in/yunarta/'
-//                    roles {
-//                        role 'author'
-//                        role 'developer'
-//                    }
-//                    timezone '+8'
-//                }
-//            }
-//        }
-//    }
-//}
-
-Properties publisher = new Properties()
-if (project.rootProject.file('publish.properties').exists()) {
-    publisher.load project.rootProject.file('publish.properties').newDataInputStream()
-    if ('true'.equals(publisher.getProperty('publish'))) {
-        apply from: 'art_publish.gradle'
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
 }
 
-artifacts {
+configurations {
+    provided
 }
