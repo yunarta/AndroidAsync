@@ -6,7 +6,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0-alpha2'
+        classpath 'com.android.tools.build:gradle:2.2.0'
         classpath 'com.mobilesolutionworks:works-autoconfig:1.0.0'
     }
 }
@@ -15,17 +15,17 @@ Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
 repositories {
-    maven {
-        credentials {
-            username properties.getProperty('maven1.user')
-            password properties.getProperty('maven1.password')
-        }
-        authentication {
-            basic(BasicAuthentication)
-        }
-
-        url 'https://bitbucket.org/v-cube/repository_maven/raw/snapshot/'
-    }
+//    maven {
+//        credentials {
+//            username properties.getProperty('maven1.user')
+//            password properties.getProperty('maven1.password')
+//        }
+//        authentication {
+//            basic(BasicAuthentication)
+//        }
+//
+//        url 'https://bitbucket.org/v-cube/repository_maven/raw/snapshot/'
+//    }
 }
 
 apply plugin: 'com.android.library'
