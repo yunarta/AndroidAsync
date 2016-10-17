@@ -23,14 +23,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Locale;
-import java.util.logging.Logger;
 
 /**
  * Created by koush on 7/1/13.
  */
 class SocketIOConnection {
-
-    private static final Logger LOGGER = Logger.getLogger("com.koushikdutta.async.http.socketio.SocketIOConnection");
 
     AsyncHttpClient httpClient;
     int heartbeat;
@@ -388,6 +385,7 @@ class SocketIOConnection {
             @Override
             public void onStringAvailable(String message) {
                 try {
+//                    Log.d(TAG, "Message: " + message);
                     String[] parts = message.split(":", 4);
                     int code = Integer.parseInt(parts[0]);
                     switch (code) {
