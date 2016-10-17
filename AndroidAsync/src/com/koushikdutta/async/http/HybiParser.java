@@ -30,6 +30,8 @@
 
 package com.koushikdutta.async.http;
 
+import android.util.Log;
+
 import com.koushikdutta.async.ByteBufferList;
 import com.koushikdutta.async.DataEmitter;
 import com.koushikdutta.async.DataEmitterReader;
@@ -64,8 +66,9 @@ abstract class HybiParser {
 
     private boolean mClosed = false;
 
-    private final ByteArrayOutputStream mBuffer = new ByteArrayOutputStream();
-    private final byte[] mInflateBuffer = new byte[4096];
+    private ByteArrayOutputStream mBuffer = new ByteArrayOutputStream();
+    private Inflater mInflater = new Inflater(true);
+    private byte[] mInflateBuffer = new byte[4096];
 
     private static final int BYTE   = 255;
     private static final int FIN    = 128;
@@ -115,26 +118,19 @@ abstract class HybiParser {
     private byte[] inflate(byte[] payload) throws DataFormatException {
         ByteArrayOutputStream inflated = new ByteArrayOutputStream();
 
-        Inflater inflater = new Inflater(true);
-        inflater.setInput(payload);
-
-        while (!inflater.needsInput()) {
-            int chunkSize = inflater.inflate(mInflateBuffer);
+        mInflater.setInput(payload);
+        while (!mInflater.needsInput()) {
+            int chunkSize = mInflater.inflate(mInflateBuffer);
             inflated.write(mInflateBuffer, 0, chunkSize);
         }
 
-        inflater.setInput(new byte[] { 0, 0, -1, -1 });
-
-        while (!inflater.needsInput()) {
-            int chunkSize = inflater.inflate(mInflateBuffer);
+        mInflater.setInput(new byte[] { 0, 0, -1, -1 });
+        while (!mInflater.needsInput()) {
+            int chunkSize = mInflater.inflate(mInflateBuffer);
             inflated.write(mInflateBuffer, 0, chunkSize);
         }
 
-        try {
-            return inflated.toByteArray();
-        } finally {
-            inflater.end();
-        }
+        return inflated.toByteArray();
     }
 
     public void setMasking(boolean masking) {
@@ -504,6 +500,21 @@ abstract class HybiParser {
         return copy;
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        Inflater inflater = mInflater;
+
+        if (inflater != null) {
+            try {
+                inflater.end();
+            } catch (Exception e) {
+                Log.e(TAG, "inflater.end failed", e);
+            }
+        }
+
+        super.finalize();
+    }
+
     public static class ProtocolError extends IOException {
         public ProtocolError(String detailMessage) {
             super(detailMessage);
@@ -521,5 +532,4 @@ abstract class HybiParser {
         }
         return value;
     }
-
 }
