@@ -30,7 +30,7 @@ publishing {
 }
 
 artifactory {
-    contextUrl = 'http://119.73.208.10:8081/artifactory/'
+    contextUrl = 'http://202.14.11.106:8081/artifactory/'
     publish {
         repository {
             // The Artifactory repository key to publish to
