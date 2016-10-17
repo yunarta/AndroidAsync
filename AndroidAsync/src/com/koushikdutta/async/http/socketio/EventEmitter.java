@@ -17,25 +17,12 @@ public class EventEmitter {
     HashList<EventCallback> callbacks = new HashList<EventCallback>();
     void onEvent(String event, JSONArray arguments, Acknowledge acknowledge) {
         List<EventCallback> list = callbacks.get(event);
-
-        // vcube changes
-        List<EventCallback> generalListeners = callbacks.get("");
-        if (generalListeners != null) {
-            if (list == null) {
-                list = generalListeners;
-            } else {
-                list.addAll(generalListeners);
-            }
-        }
-        // end of vcube changes
-
-        if (list == null) return;
+        if (list == null)
+            return;
         Iterator<EventCallback> iter = list.iterator();
         while (iter.hasNext()) {
             EventCallback cb = iter.next();
-            // vcube changes
-            cb.onEvent(event, arguments, acknowledge);
-            // end of vcube changes
+            cb.onEvent(arguments, acknowledge);
             if (cb instanceof OnceCallback)
                 iter.remove();
         }
@@ -47,12 +34,10 @@ public class EventEmitter {
 
     public void once(final String event, final EventCallback callback) {
         on(event, new OnceCallback() {
-            // vcube changes
             @Override
-            public void onEvent(String event, JSONArray arguments, Acknowledge acknowledge) {
-                callback.onEvent(event, arguments, acknowledge);
+            public void onEvent(JSONArray arguments, Acknowledge acknowledge) {
+                callback.onEvent(arguments, acknowledge);
             }
-            // end of vcube changes
         });
     }
 
