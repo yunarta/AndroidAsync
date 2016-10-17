@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply from: 'art_publish.gradle'
 
 group 'jp.co.vcube.android'
-version '2.1.18'
+version '2.1.19'
 
 android {
     compileSdkVersion 24
