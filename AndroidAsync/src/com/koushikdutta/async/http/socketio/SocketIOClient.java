@@ -10,7 +10,6 @@ import com.koushikdutta.async.http.socketio.transport.SocketIOTransport;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@Deprecated
 public class SocketIOClient extends EventEmitter {
     boolean connected;
     boolean disconnected;
@@ -130,14 +129,6 @@ public class SocketIOClient extends EventEmitter {
         disconnectCallback = callback;
     }
 
-    HeartbeatCallback heartbeatCallback;
-    public HeartbeatCallback getHeartbeatCallback() {
-        return heartbeatCallback;
-    }
-    public void setHeartbeatCallback(HeartbeatCallback heartbeatCallback) {
-        this.heartbeatCallback = heartbeatCallback;
-    }
-
     ReconnectCallback reconnectCallback;
     public ReconnectCallback getReconnectCallback() {
         return reconnectCallback;
@@ -168,10 +159,6 @@ public class SocketIOClient extends EventEmitter {
         this.endpoint = endpoint;
         this.connection = connection;
         this.connectCallback = callback;
-    }
-
-    public String getEndpoint() {
-        return endpoint;
     }
 
     public boolean isConnected() {

@@ -177,7 +177,6 @@ class SocketIOConnection {
     }
 
     void setupHeartbeat() {
-        final SocketIOTransport ts = transport;
         Runnable heartbeatRunner = new Runnable() {
             @Override
             public void run() {
@@ -404,14 +403,6 @@ class SocketIOConnection {
                         case 2:
                             // heartbeat
                             transport.send("2::");
-                            select(null, new SelectCallback() {
-                                @Override
-                                public void onSelect(SocketIOClient client) {
-                                    if (client.heartbeatCallback != null) {
-                                        client.heartbeatCallback.onHeartbeat(client);
-                                    }
-                                }
-                            });
                             break;
                         case 3: {
                             // message
