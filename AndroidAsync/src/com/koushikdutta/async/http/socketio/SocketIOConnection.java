@@ -28,7 +28,6 @@ import java.util.Locale;
  * Created by koush on 7/1/13.
  */
 class SocketIOConnection {
-
     AsyncHttpClient httpClient;
     int heartbeat;
     long reconnectDelay;
@@ -121,10 +120,10 @@ class SocketIOConnection {
                 else
                     heartbeat = 0;
 
-                        String transportsLine = parts[3];
-                        String[] transports = transportsLine.split(",");
-                        HashSet<String> set = new HashSet<String>(Arrays.asList(transports));
-                        final SimpleFuture<SocketIOTransport> transport = new SimpleFuture<SocketIOTransport>();
+                String transportsLine = parts[3];
+                String[] transports = transportsLine.split(",");
+                HashSet<String> set = new HashSet<String>(Arrays.asList(transports));
+                final SimpleFuture<SocketIOTransport> transport = new SimpleFuture<SocketIOTransport>();
 
                 if (set.contains("websocket")) {
                     final String sessionUrl = Uri.parse(request.getUri().toString()).buildUpon()
@@ -152,16 +151,16 @@ class SocketIOConnection {
                     throw new SocketIOException("transport not supported");
                 }
 
-                        setComplete(transport);
-                    }
-                })
-                .setCallback(new FutureCallback<SocketIOTransport>() {
-                    @Override
-                    public void onCompleted(Exception e, SocketIOTransport result) {
-                        if (e != null) {
-                            reportDisconnect(e);
-                            return;
-                        }
+                setComplete(transport);
+            }
+        })
+        .setCallback(new FutureCallback<SocketIOTransport>() {
+            @Override
+            public void onCompleted(Exception e, SocketIOTransport result) {
+                if (e != null) {
+                    reportDisconnect(e);
+                    return;
+                }
 
                 reconnectDelay = request.config.reconnectDelay;
                 SocketIOConnection.this.transport = result;

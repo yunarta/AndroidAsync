@@ -8,14 +8,14 @@ import java.util.LinkedList;
 public class Continuation extends SimpleCancellable implements ContinuationCallback, Runnable, Cancellable {
     CompletedCallback callback;
     Runnable cancelCallback;
-
+    
     public CompletedCallback getCallback() {
         return callback;
     }
     public void setCallback(CompletedCallback callback) {
         this.callback = callback;
     }
-
+    
     public Runnable getCancelCallback() {
         return cancelCallback;
     }
@@ -34,7 +34,7 @@ public class Continuation extends SimpleCancellable implements ContinuationCallb
             }
         };
     }
-
+    
     public Continuation() {
         this(null);
     }
@@ -45,7 +45,7 @@ public class Continuation extends SimpleCancellable implements ContinuationCallb
         this.cancelCallback = cancelCallback;
         this.callback = callback;
     }
-
+    
     private CompletedCallback wrap() {
         return new CompletedCallback() {
             boolean mThisCompleted;
@@ -66,16 +66,16 @@ public class Continuation extends SimpleCancellable implements ContinuationCallb
             }
         };
     }
-
+    
     void reportCompleted(Exception ex) {
         if (!setComplete())
             return;
         if (callback != null)
-            callback.onCompleted(ex);
+            callback.onCompleted(ex);        
     }
-
+    
     LinkedList<ContinuationCallback> mCallbacks = new LinkedList<ContinuationCallback>();
-
+    
     private ContinuationCallback hook(ContinuationCallback callback) {
         if (callback instanceof DependentCancellable) {
             DependentCancellable child = (DependentCancellable)callback;
@@ -83,17 +83,17 @@ public class Continuation extends SimpleCancellable implements ContinuationCallb
         }
         return callback;
     }
-
+    
     public Continuation add(ContinuationCallback callback) {
         mCallbacks.add(hook(callback));
         return this;
     }
-
+    
     public Continuation insert(ContinuationCallback callback) {
         mCallbacks.add(0, hook(callback));
         return this;
     }
-
+   
     public Continuation add(final DependentFuture future) {
         future.setParent(this);
         add(new ContinuationCallback() {
@@ -105,7 +105,7 @@ public class Continuation extends SimpleCancellable implements ContinuationCallb
         });
         return this;
     }
-
+    
     private boolean inNext;
     private boolean waiting;
     private void next() {
@@ -139,13 +139,13 @@ public class Continuation extends SimpleCancellable implements ContinuationCallb
     public boolean cancel() {
         if (!super.cancel())
             return false;
-
+        
         if (cancelCallback != null)
             cancelCallback.run();
-
+        
         return true;
     }
-
+    
     boolean started;
     public Continuation start() {
         if (started)

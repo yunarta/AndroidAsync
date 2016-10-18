@@ -12,7 +12,7 @@ public abstract class StreamPart extends Part {
     public StreamPart(String name, long length, List<NameValuePair> contentDisposition) {
         super(name, length, contentDisposition);
     }
-
+    
     @Override
     public void write(DataSink sink, CompletedCallback callback) {
         try {
@@ -23,6 +23,6 @@ public abstract class StreamPart extends Part {
             callback.onCompleted(e);
         }
     }
-
+    
     protected abstract InputStream getInputStream() throws IOException;
 }
