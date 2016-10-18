@@ -11,29 +11,29 @@ public class BoundaryEmitter extends FilteredDataEmitter {
     public void setBoundary(String boundary) {
         this.boundary = ("\r\n--" + boundary).getBytes();
     }
-
+    
     public String getBoundary() {
         if (boundary == null)
             return null;
         return new String(boundary, 4, boundary.length - 4);
     }
-
+    
     public String getBoundaryStart() {
         assert boundary != null;
         return new String(boundary, 2, boundary.length - 2);
     }
-
+    
     public String getBoundaryEnd() {
         assert boundary != null;
         return getBoundaryStart() + "--\r\n";
     }
-
+    
     protected void onBoundaryStart() {
     }
-
+    
     protected void onBoundaryEnd() {
     }
-
+    
     // >= 0 matching
     // -1 matching - (start of boundary end) or \r (boundary start)
     // -2 matching - (end of boundary end)
@@ -52,16 +52,16 @@ public class BoundaryEmitter extends FilteredDataEmitter {
         foo         <---------------- the newline is NOT PART OF THE PAYLOAD
         ------------------------------bc3c801ac760--
      */
-
-
+    
+    
     int state = 2;
     @Override
     public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
 //        System.out.println(bb.getString());
 //        System.out.println("chunk: " + bb.remaining());
-
+        
 //        System.out.println("state: " + state);
-
+        
         // if we were in the middle of a potential match, let's throw that
         // at the beginning of the buffer and process it too.
         if (state > 0) {
@@ -71,7 +71,7 @@ public class BoundaryEmitter extends FilteredDataEmitter {
             bb.addFirst(b);
             state = 0;
         }
-
+        
         int last = 0;
         byte[] buf = new byte[bb.remaining()];
         bb.get(buf);

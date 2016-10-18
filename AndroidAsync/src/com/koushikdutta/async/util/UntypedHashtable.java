@@ -21,6 +21,6 @@ public class UntypedHashtable {
     }
 
     public <T> T get(String key) {
-        return (T) hash.get(key);
+        return (T)hash.get(key);
     }
 }
