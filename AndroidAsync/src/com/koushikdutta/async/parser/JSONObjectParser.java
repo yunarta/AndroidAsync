@@ -16,12 +16,12 @@ public class JSONObjectParser implements AsyncParser<JSONObject> {
     @Override
     public Future<JSONObject> parse(DataEmitter emitter) {
         return new StringParser().parse(emitter)
-                .then(new TransformFuture<JSONObject, String>() {
-                    @Override
-                    protected void transform(String result) throws Exception {
-                        setComplete(new JSONObject(result));
-                    }
-                });
+        .then(new TransformFuture<JSONObject, String>() {
+            @Override
+            protected void transform(String result) throws Exception {
+                setComplete(new JSONObject(result));
+            }
+        });
     }
 
     @Override
