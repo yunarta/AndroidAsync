@@ -14,8 +14,6 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class AsyncNetworkSocket implements AsyncSocket {
     AsyncNetworkSocket() {
@@ -57,7 +55,7 @@ public class AsyncNetworkSocket implements AsyncSocket {
         if (mWriteableHandler != null)
             mWriteableHandler.onWriteable();
     }
-    
+
     private ChannelWrapper mChannel;
     private SelectionKey mKey;
     private AsyncServer mServer;
@@ -237,8 +235,7 @@ public class AsyncNetworkSocket implements AsyncSocket {
         if (mCompletedCallback != null)
             mCompletedCallback.onCompleted(e);
         else if (e != null) {
-            Logger.getLogger("com.koushikdutta.async.NIO").log(Level.SEVERE, "Unhandled exception", e);
-            // Log.e("NIO", "Unhandled exception", e);
+            Log.e("NIO", "Unhandled exception", e);
         }
     }
     boolean mEndReported;
