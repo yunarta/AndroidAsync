@@ -85,23 +85,8 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                     }
 
                     public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-                        // vcube changes
-                        if (LOGGER.isLoggable(Level.FINEST)) {
-                            LOGGER.finest("Static:: checkServerTrusted");
-                        }
-                        // end vcube changes
-
                         for (X509Certificate cert : certs) {
                             if (cert != null && cert.getCriticalExtensionOIDs() != null){
-                                // vcube changes
-                                if (LOGGER.isLoggable(Level.FINEST)) {
-                                    Iterator<String> it = cert.getCriticalExtensionOIDs().iterator();
-                                    while (it.hasNext()) {
-                                        String ext = it.next();
-                                        LOGGER.finest("Static:: Extension: " + ext);
-                                    }
-                                }
-                                // end of vcube changes
                                 cert.getCriticalExtensionOIDs().remove("2.5.29.15");
                             }
                         }
@@ -119,16 +104,6 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
     public static SSLContext getDefaultSSLContext() {
         return defaultSSLContext;
     }
-
-    // vcube changes
-    public static void setDefaultSSLContext(SSLContext defaultSSLContext) {
-        AsyncSSLSocketWrapper.defaultSSLContext = AsyncSSLSocketWrapper.defaultSSLContext2 = defaultSSLContext;
-    }
-
-    public static void setDefaultTrustManager(TrustManager[] defaultTrustManagers) {
-        AsyncSSLSocketWrapper.defaultTrustManagers = AsyncSSLSocketWrapper.defaultTrustManagers = defaultTrustManagers;
-    }
-    // end of vcube changes
 
     public static void handshake(AsyncSocket socket,
                                  String host, int port,
@@ -327,12 +302,6 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                 if (clientMode) {
                     TrustManager[] trustManagers = this.trustManagers;
                     if (trustManagers == null) {
-                        // vcube changes
-                        if (LOGGER.isLoggable(Level.FINEST)) {
-                            LOGGER.finest("HandleHandshakeStatus:: TrustManagerFactory.getDefaultAlgorithm() = " + TrustManagerFactory.getDefaultAlgorithm());
-                        }
-                        // end of vcube changes
-
                         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                         tmf.init((KeyStore) null);
                         trustManagers = tmf.getTrustManagers();
@@ -340,23 +309,10 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                     boolean trusted = false;
                     Exception peerUnverifiedCause = null;
                     for (TrustManager tm : trustManagers) {
-                        // vcube changes
-                        if (LOGGER.isLoggable(Level.FINEST)) {
-                            LOGGER.finest("HandleHandshakeStatus:: TrustManager = " + tm);
-                        }
-                        // end of vcube changes
 
                         try {
                             X509TrustManager xtm = (X509TrustManager) tm;
                             peerCertificates = (X509Certificate[]) engine.getSession().getPeerCertificates();
-
-                            // vcube changes
-                            if (LOGGER.isLoggable(Level.FINEST)) {
-                                for (int i = 0; i < peerCertificates.length; i++) {
-                                    LOGGER.finest("HandleHandshakeStatus:: Certificate = " + peerCertificates[i].toString());
-                                }
-                            }
-                            // end of vcube changes
 
                             xtm.checkServerTrusted(peerCertificates, "SSL");
                             if (mHost != null) {
@@ -374,19 +330,9 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                             break;
                         }
                         catch (GeneralSecurityException ex) {
-                            // vcube changes
-                            if (LOGGER.isLoggable(Level.FINEST)) {
-                                LOGGER.log(Level.SEVERE, "HandleHandshakeStatus:: Error", ex);
-                            }
-                            // end of vcube changes
                             peerUnverifiedCause = ex;
                         }
                         catch (SSLException ex) {
-                            // vcube changes
-                            if (LOGGER.isLoggable(Level.FINEST)) {
-                                LOGGER.log(Level.SEVERE, "HandleHandshakeStatus:: Error", ex);
-                            }
-                            // end of vcube changes
                             peerUnverifiedCause = ex;
                         }
                     }
