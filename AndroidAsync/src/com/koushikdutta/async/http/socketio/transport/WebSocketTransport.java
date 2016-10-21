@@ -5,13 +5,7 @@ import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.http.WebSocket;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class WebSocketTransport implements SocketIOTransport {
-
-    private static final Logger LOGGER = Logger.getLogger(WebSocketTransport.class.getName());
-
     private WebSocket webSocket;
     private StringCallback stringCallback;
 	private String sessionId;
@@ -45,9 +39,6 @@ public class WebSocketTransport implements SocketIOTransport {
     @Override
     public void send(String message) {
         this.webSocket.send(message);
-        if (LOGGER.isLoggable(Level.FINEST)) {
-            LOGGER.finest("Tx\n" + message);
-        }
     }
 
     @Override
@@ -61,9 +52,6 @@ public class WebSocketTransport implements SocketIOTransport {
             this.webSocket.setStringCallback(new WebSocket.StringCallback() {
                 @Override
                 public void onStringAvailable(String s) {
-                    if (LOGGER.isLoggable(Level.FINEST)) {
-                        LOGGER.finest("Rx\n" + s);
-                    }
                     callback.onStringAvailable(s);
                 }
             });
@@ -82,3 +70,4 @@ public class WebSocketTransport implements SocketIOTransport {
 		return this.sessionId;
 	}
 }
+
