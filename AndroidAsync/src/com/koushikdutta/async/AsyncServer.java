@@ -2,6 +2,7 @@ package com.koushikdutta.async;
 
 import android.os.Build;
 import android.os.Handler;
+import android.util.Log;
 
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.ConnectCallback;
@@ -32,19 +33,16 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class AsyncServer {
-    public static final String LOGTAG = "com.koushikdutta.async.NIO";
-
-    private static final Logger LOGGER = Logger.getLogger(LOGTAG);
+    public static final String LOGTAG = "NIO";
 
     private static class RunnableWrapper implements Runnable {
         boolean hasRun;
@@ -140,8 +138,7 @@ public class AsyncServer {
                     selector.wakeupOnce();
                 }
                 catch (Exception e) {
-                    LOGGER.info("Selector Exception? L Preview?");
-                    // Log.i(LOGTAG, "Selector Exception? L Preview?");
+                    Log.i(LOGTAG, "Selector Exception? L Preview?");
                 }
             }
         });
@@ -219,8 +216,7 @@ public class AsyncServer {
             semaphore.acquire();
         }
         catch (InterruptedException e) {
-            LOGGER.log(Level.SEVERE, "run", e);
-            // Log.e(LOGTAG, "run", e);
+            Log.e(LOGTAG, "run", e);
         }
     }
 
@@ -338,8 +334,7 @@ public class AsyncServer {
                     });
                 }
                 catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, "wtf", e);
-                    // Log.e(LOGTAG, "wtf", e);
+                    Log.e(LOGTAG, "wtf", e);
                     StreamUtility.closeQuietly(closeableWrapper, closeableServer);
                     handler.onCompleted(e);
                 }
@@ -500,8 +495,7 @@ public class AsyncServer {
                     socket.connect(remote);
                 }
                 catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, "Datagram error", e);
-                    // Log.e(LOGTAG, "Datagram error", e);
+                    Log.e(LOGTAG, "Datagram error", e);
                     StreamUtility.closeQuietly(socket);
                 }
             }
@@ -530,8 +524,7 @@ public class AsyncServer {
                     handleSocket(handler);
                 }
                 catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, "Datagram error", e);
-                    // Log.e(LOGTAG, "Datagram error", e);
+                    Log.e(LOGTAG, "Datagram error", e);
                     StreamUtility.closeQuietly(socket);
                 }
             }
@@ -586,8 +579,7 @@ public class AsyncServer {
         boolean reentrant = false;
         synchronized (this) {
             if (mSelector != null) {
-                LOGGER.info("Reentrant call");
-                // Log.i(LOGTAG, "Reentrant call");
+                Log.i(LOGTAG, "Reentrant call");
                 assert Thread.currentThread() == mAffinity;
                 // this is reentrant
                 reentrant = true;
@@ -638,8 +630,7 @@ public class AsyncServer {
                 runLoop(this, selector, queue);
             }
             catch (AsyncSelectorException e) {
-                LOGGER.log(Level.INFO, "Selector closed", e);
-                // Log.i(LOGTAG, "Selector closed", e);
+                Log.i(LOGTAG, "Selector closed", e);
                 try {
                     // StreamUtility.closeQuiety is throwing ArrayStoreException?
                     selector.getSelector().close();
@@ -667,8 +658,7 @@ public class AsyncServer {
                 runLoop(server, selector, queue);
             }
             catch (AsyncSelectorException e) {
-                LOGGER.log(Level.INFO, "Selected exception, shutting down", e);
-                // Log.i(LOGTAG, "Selector exception, shutting down", e);
+                Log.i(LOGTAG, "Selector exception, shutting down", e);
                 try {
                     // StreamUtility.closeQuiety is throwing ArrayStoreException?
                     selector.getSelector().close();
@@ -863,8 +853,7 @@ public class AsyncServer {
                     }
                 }
                 else {
-                    LOGGER.info("wtf");
-                    // Log.i(LOGTAG, "wtf");
+                    Log.i(LOGTAG, "wtf");
                     throw new RuntimeException("Unknown key state.");
                 }
             }
@@ -879,16 +868,13 @@ public class AsyncServer {
             @Override
             public void run() {
                 if (mSelector == null) {
-                    LOGGER.info("Server dump not possible. No selector?");
-                    // Log.i(LOGTAG, "Server dump not possible. No selector?");
+                    Log.i(LOGTAG, "Server dump not possible. No selector?");
                     return;
                 }
-                LOGGER.info("Key Count: " + mSelector.keys().size());
-                // Log.i(LOGTAG, "Key Count: " + mSelector.keys().size());
+                Log.i(LOGTAG, "Key Count: " + mSelector.keys().size());
 
                 for (SelectionKey key: mSelector.keys()) {
-                    LOGGER.info("Key: " + key);
-                    // Log.i(LOGTAG, "Key: " + key);
+                    Log.i(LOGTAG, "Key: " + key);
                 }
             }
         });
