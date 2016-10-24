@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply from: 'art_publish.gradle'
 
 group 'jp.co.vcube.android'
-version '2.1.19'
+version '2.1.20'
 
 android {
     compileSdkVersion 24
@@ -12,7 +12,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 24
 
-        versionCode 1
+        versionCode 20
         versionName version
     }
 
