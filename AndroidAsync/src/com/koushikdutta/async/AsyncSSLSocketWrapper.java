@@ -15,9 +15,6 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -31,19 +28,11 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket {
-
-    public static final Logger LOGGER = Logger.getLogger(AsyncSSLSocketWrapper.class.getName());
-
     public interface HandshakeCallback {
         public void onHandshakeCompleted(Exception e, AsyncSSLSocket socket);
     }
 
     static SSLContext defaultSSLContext;
-
-    // vcube changes
-    private static SSLContext		defaultSSLContext2;
-    private static TrustManager[]	defaultTrustManagers;
-    // end of vcube changes
 
     AsyncSocket mSocket;
     BufferedDataSink mSink;
@@ -73,7 +62,7 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                 throw new Exception();
             defaultSSLContext = SSLContext.getInstance("Default");
         }
-        catch (final Exception ex) {
+        catch (Exception ex) {
             try {
                 defaultSSLContext = SSLContext.getInstance("TLS");
                 TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
@@ -86,9 +75,8 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
 
                     public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
                         for (X509Certificate cert : certs) {
-                            if (cert != null && cert.getCriticalExtensionOIDs() != null){
+                            if (cert != null && cert.getCriticalExtensionOIDs() != null)
                                 cert.getCriticalExtensionOIDs().remove("2.5.29.15");
-                            }
                         }
                     }
                 } };
@@ -140,12 +128,7 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
         mSocket = socket;
         hostnameVerifier = verifier;
         this.clientMode = clientMode;
-
-        // vcube changes
-        this.trustManagers = AsyncSSLSocketWrapper.defaultTrustManagers != null ? AsyncSSLSocketWrapper.defaultTrustManagers : trustManagers;
-        // this.trustManagers = trustManagers;
-        // end of vcube changes
-
+        this.trustManagers = trustManagers;
         this.engine = sslEngine;
 
         mHost = host;
@@ -309,11 +292,9 @@ public class AsyncSSLSocketWrapper implements AsyncSocketWrapper, AsyncSSLSocket
                     boolean trusted = false;
                     Exception peerUnverifiedCause = null;
                     for (TrustManager tm : trustManagers) {
-
                         try {
                             X509TrustManager xtm = (X509TrustManager) tm;
                             peerCertificates = (X509Certificate[]) engine.getSession().getPeerCertificates();
-
                             xtm.checkServerTrusted(peerCertificates, "SSL");
                             if (mHost != null) {
                                 if (hostnameVerifier == null) {
