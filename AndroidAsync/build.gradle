@@ -6,7 +6,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath 'com.android.tools.build:gradle:2.3.0-beta3'
         classpath 'com.mobilesolutionworks:works-autoconfig:1.0.0'
     }
 }
@@ -56,14 +56,14 @@ android {
     }
 
     defaultConfig {
-        targetSdkVersion 23
+        targetSdkVersion rootProject.ext.targetSdkVersion
         minSdkVersion 9
         versionCode 1
         versionName version
     }
 
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 }
 
 def generatePom() {
